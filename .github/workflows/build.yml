@@ -8,9 +8,9 @@ on:
         required: true
         default: 'user-why-red/android_kernel_xiaomi_sdm660_44'
       kernel_branch:
-        description: 'Kernel source branch (ksu-patches=pre-patched manual hooks for KSU)'
+        description: 'Kernel source branch (android-4.4-stable=clean LTS, ksu-patches=KSU pre-patches)'
         required: true
-        default: 'ksu-patches'
+        default: 'android-4.4-stable'
       defconfig:
         description: 'Defconfig name (under arch/arm64/configs/). Leave "auto" to autodetect whyred.'
         required: true
@@ -162,13 +162,13 @@ jobs:
         working-directory: kernel_source
         run: |
           set -e
-          # KSUN-Next legacy branch needs either manual hooks in kernel source OR KPROBES hooks.
-          # Check if kernel source already has manual hook calls.
-          if grep -rqE "ksu_(handle_(execveat|faccessat|stat|input)|input_handle_event)" fs/ 2>/dev/null; then
-            echo "Manual hooks detected in kernel source -> using MANUAL hooks"
+          # KSUN-Next legacy Kbuild specifically checks for "ksu_handle_sys_reboot" 
+          # in kernel/reboot.c to validate manual hooks. If not present, must use KPROBES.
+          if [ -f kernel/reboot.c ] && grep -q "ksu_handle_sys_reboot" kernel/reboot.c 2>/dev/null; then
+            echo "Manual hooks (ksu_handle_sys_reboot) detected -> using MANUAL hooks"
             echo "KSU_HOOK_MODE=manual" >> $GITHUB_ENV
           else
-            echo "No manual hooks found -> falling back to KPROBES hooks"
+            echo "Manual hooks NOT found in kernel/reboot.c -> using KPROBES hooks (auto-injected at runtime)"
             echo "KSU_HOOK_MODE=kprobes" >> $GITHUB_ENV
           fi
 
@@ -219,21 +219,23 @@ jobs:
             echo "CONFIG_KSU=y"
             echo "CONFIG_KSU_DEBUG=n"
             echo "CONFIG_OVERLAY_FS=y"
+            # KPROBES infrastructure (needed for KPROBES_HOOK)
+            echo "CONFIG_KPROBES=y"
+            echo "CONFIG_HAVE_KPROBES=y"
+            echo "CONFIG_KPROBE_EVENTS=y"
           } >> "${DCFG_PATH}"
 
           # Hook mode based on detection in previous step
           if [ "${KSU_HOOK_MODE}" = "kprobes" ]; then
             {
               echo "CONFIG_KSU_KPROBES_HOOK=y"
-              echo "CONFIG_KSU_MANUAL_HOOK=n"
             } >> "${DCFG_PATH}"
-            echo "Using KPROBES hooks"
+            echo "Using KPROBES hooks (no kernel source patches needed)"
           else
             {
               echo "CONFIG_KSU_MANUAL_HOOK=y"
-              echo "CONFIG_KSU_KPROBES_HOOK=n"
             } >> "${DCFG_PATH}"
-            echo "Using MANUAL hooks (kernel source pre-patched)"
+            echo "Using MANUAL hooks (kernel source pre-patched with ksu_handle_sys_reboot)"
           fi
 
           if [ "${{ inputs.enable_susfs }}" = "true" ]; then
