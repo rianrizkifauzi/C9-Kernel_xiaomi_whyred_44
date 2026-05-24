@@ -15,10 +15,14 @@ on:
         description: 'Defconfig name (under arch/arm64/configs/). Leave "auto" to autodetect whyred.'
         required: true
         default: 'auto'
-      ksun_branch:
-        description: 'KernelSU-Next branch (legacy=non-GKI driver | legacy-susfs=non-GKI+SUSFS | next=GKI only)'
+      ksun_repo:
+        description: 'KernelSU implementation (rsuntk/KernelSU=non-GKI compatible | KernelSU-Next/KernelSU-Next=GKI only)'
         required: true
-        default: 'legacy'
+        default: 'rsuntk/KernelSU'
+      ksun_branch:
+        description: 'KernelSU branch (main for rsuntk, legacy/next for KSUN-Next)'
+        required: true
+        default: 'main'
       susfs_branch:
         description: 'SUSFS branch'
         required: true
@@ -148,27 +152,47 @@ jobs:
           mkdir -p toolchain
           git clone --depth=1 https://github.com/kdrag0n/proton-clang.git toolchain/clang
 
-      - name: Clone KernelSU-Next
+      - name: Clone KernelSU
         working-directory: kernel_source
         run: |
-          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/${{ inputs.ksun_branch }}/kernel/setup.sh" \
-            | bash -s "${{ inputs.ksun_branch }}"
-          if [ -d KernelSU-Next ]; then
-            cd KernelSU-Next
-            echo "KSUN_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || git rev-parse --short HEAD)" >> $GITHUB_ENV
+          set -e
+          KSU_REPO="${{ inputs.ksun_repo }}"
+          KSU_BRANCH="${{ inputs.ksun_branch }}"
+          echo "Setting up KernelSU from ${KSU_REPO}@${KSU_BRANCH}"
+
+          curl -LSs "https://raw.githubusercontent.com/${KSU_REPO}/${KSU_BRANCH}/kernel/setup.sh" \
+            | bash -s "${KSU_BRANCH}"
+
+          # Determine which directory was created (rsuntk uses "KernelSU", KSUN uses "KernelSU-Next")
+          if [ -d KernelSU ]; then
+            KSU_DIR="KernelSU"
+          elif [ -d KernelSU-Next ]; then
+            KSU_DIR="KernelSU-Next"
+          else
+            echo "::error::KernelSU directory not found after setup"
+            exit 1
           fi
+
+          cd "${KSU_DIR}"
+          KSUN_VER=$(git describe --tags --abbrev=0 2>/dev/null || git rev-parse --short HEAD)
+          echo "KSUN_VERSION=${KSUN_VER}" >> $GITHUB_ENV
+          echo "KSU_DIR=${KSU_DIR}" >> $GITHUB_ENV
+          echo "KernelSU directory: ${KSU_DIR}, version: ${KSUN_VER}"
 
       - name: Detect KSU hooks integration mode
         working-directory: kernel_source
         run: |
           set -e
-          # KSUN-Next legacy Kbuild specifically checks for "ksu_handle_sys_reboot" 
-          # in kernel/reboot.c to validate manual hooks. If not present, must use KPROBES.
-          if [ -f kernel/reboot.c ] && grep -q "ksu_handle_sys_reboot" kernel/reboot.c 2>/dev/null; then
+          # rsuntk/KernelSU has no hook check in Makefile - works with any kernel.
+          # KSUN-Next legacy needs ksu_handle_sys_reboot in kernel/reboot.c for manual hooks.
+          if [ "${{ inputs.ksun_repo }}" = "rsuntk/KernelSU" ]; then
+            echo "rsuntk/KernelSU detected - no hook mode check needed"
+            echo "KSU_HOOK_MODE=auto" >> $GITHUB_ENV
+          elif [ -f kernel/reboot.c ] && grep -q "ksu_handle_sys_reboot" kernel/reboot.c 2>/dev/null; then
             echo "Manual hooks (ksu_handle_sys_reboot) detected -> using MANUAL hooks"
             echo "KSU_HOOK_MODE=manual" >> $GITHUB_ENV
           else
-            echo "Manual hooks NOT found in kernel/reboot.c -> using KPROBES hooks (auto-injected at runtime)"
+            echo "No manual hooks found -> using KPROBES hooks"
             echo "KSU_HOOK_MODE=kprobes" >> $GITHUB_ENV
           fi
 
@@ -215,27 +239,26 @@ jobs:
         run: |
           {
             echo ""
-            echo "# === KernelSU-Next ==="
+            echo "# === KernelSU ==="
             echo "CONFIG_KSU=y"
-            echo "CONFIG_KSU_DEBUG=n"
             echo "CONFIG_OVERLAY_FS=y"
-            # KPROBES infrastructure (needed for KPROBES_HOOK)
-            echo "CONFIG_KPROBES=y"
-            echo "CONFIG_HAVE_KPROBES=y"
-            echo "CONFIG_KPROBE_EVENTS=y"
           } >> "${DCFG_PATH}"
 
-          # Hook mode based on detection in previous step
-          if [ "${KSU_HOOK_MODE}" = "kprobes" ]; then
+          if [ "${KSU_HOOK_MODE}" = "auto" ]; then
+            echo "rsuntk/KernelSU - no hook config needed (auto-detected at compile time)"
+          elif [ "${KSU_HOOK_MODE}" = "kprobes" ]; then
             {
+              echo "CONFIG_KPROBES=y"
+              echo "CONFIG_KRETPROBES=y"
+              echo "CONFIG_HAVE_KPROBES=y"
+              echo "CONFIG_HAVE_KRETPROBES=y"
+              echo "CONFIG_HAVE_SYSCALL_TRACEPOINTS=y"
               echo "CONFIG_KSU_KPROBES_HOOK=y"
             } >> "${DCFG_PATH}"
-            echo "Using KPROBES hooks (no kernel source patches needed)"
+            echo "Using KPROBES hooks"
           else
-            {
-              echo "CONFIG_KSU_MANUAL_HOOK=y"
-            } >> "${DCFG_PATH}"
-            echo "Using MANUAL hooks (kernel source pre-patched with ksu_handle_sys_reboot)"
+            echo "CONFIG_KSU_MANUAL_HOOK=y" >> "${DCFG_PATH}"
+            echo "Using MANUAL hooks"
           fi
 
           if [ "${{ inputs.enable_susfs }}" = "true" ]; then
@@ -286,14 +309,8 @@ jobs:
 
           echo ""
           echo "=== Building kernel (Clang+GNU-LD hybrid for 4.4 compat) ==="
+          echo "KernelSU repo: ${{ inputs.ksun_repo }}"
           echo "Hook mode: ${KSU_HOOK_MODE}"
-
-          # Export hook mode env vars (KSUN-Next legacy reads these in kernel/Kbuild)
-          if [ "${KSU_HOOK_MODE}" = "kprobes" ]; then
-            export KSU_KPROBES_HOOK=true
-          else
-            export KSU_MANUAL_HOOK=true
-          fi
 
           # NOTE: Kernel 4.4 doesn't play nice with ld.lld (empty built-in.o issue).
           # Use Clang for compile but GNU ld (from binutils) for link.
