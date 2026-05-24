@@ -20,9 +20,9 @@ on:
         required: true
         default: 'rsuntk/KernelSU'
       ksun_branch:
-        description: 'KernelSU branch (main for rsuntk, legacy/next for KSUN-Next)'
+        description: 'KernelSU tag/branch. Use v1.0.5-80-legacy for stable prctl-based on 4.4 (recommended). main = newest fd-based (panics on 4.4)'
         required: true
-        default: 'main'
+        default: 'v1.0.5-80-legacy'
       susfs_branch:
         description: 'SUSFS branch'
         required: true
@@ -366,7 +366,6 @@ jobs:
             echo "# === KernelSU ==="
             echo "CONFIG_KSU=y"
             echo "CONFIG_KSU_DEBUG=n"
-            echo "CONFIG_KSU_DISABLE_MANAGER=y"
             echo "CONFIG_OVERLAY_FS=y"
           } >> "${DCFG_PATH}"
 
