@@ -8,9 +8,9 @@ on:
         required: true
         default: 'user-why-red/android_kernel_xiaomi_sdm660_44'
       kernel_branch:
-        description: 'Kernel source branch'
+        description: 'Kernel source branch (ksu-patches=pre-patched manual hooks for KSU)'
         required: true
-        default: 'android-4.4-stable'
+        default: 'ksu-patches'
       defconfig:
         description: 'Defconfig name (under arch/arm64/configs/). Leave "auto" to autodetect whyred.'
         required: true
@@ -158,6 +158,20 @@ jobs:
             echo "KSUN_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || git rev-parse --short HEAD)" >> $GITHUB_ENV
           fi
 
+      - name: Detect KSU hooks integration mode
+        working-directory: kernel_source
+        run: |
+          set -e
+          # KSUN-Next legacy branch needs either manual hooks in kernel source OR KPROBES hooks.
+          # Check if kernel source already has manual hook calls.
+          if grep -rqE "ksu_(handle_(execveat|faccessat|stat|input)|input_handle_event)" fs/ 2>/dev/null; then
+            echo "Manual hooks detected in kernel source -> using MANUAL hooks"
+            echo "KSU_HOOK_MODE=manual" >> $GITHUB_ENV
+          else
+            echo "No manual hooks found -> falling back to KPROBES hooks"
+            echo "KSU_HOOK_MODE=kprobes" >> $GITHUB_ENV
+          fi
+
       - name: Clone SUSFS
         if: ${{ inputs.enable_susfs == 'true' }}
         run: |
@@ -204,9 +218,23 @@ jobs:
             echo "# === KernelSU-Next ==="
             echo "CONFIG_KSU=y"
             echo "CONFIG_KSU_DEBUG=n"
-            echo "CONFIG_KSU_KPROBES_HOOK=y"
             echo "CONFIG_OVERLAY_FS=y"
           } >> "${DCFG_PATH}"
+
+          # Hook mode based on detection in previous step
+          if [ "${KSU_HOOK_MODE}" = "kprobes" ]; then
+            {
+              echo "CONFIG_KSU_KPROBES_HOOK=y"
+              echo "CONFIG_KSU_MANUAL_HOOK=n"
+            } >> "${DCFG_PATH}"
+            echo "Using KPROBES hooks"
+          else
+            {
+              echo "CONFIG_KSU_MANUAL_HOOK=y"
+              echo "CONFIG_KSU_KPROBES_HOOK=n"
+            } >> "${DCFG_PATH}"
+            echo "Using MANUAL hooks (kernel source pre-patched)"
+          fi
 
           if [ "${{ inputs.enable_susfs }}" = "true" ]; then
             {
@@ -256,6 +284,15 @@ jobs:
 
           echo ""
           echo "=== Building kernel (Clang+GNU-LD hybrid for 4.4 compat) ==="
+          echo "Hook mode: ${KSU_HOOK_MODE}"
+
+          # Export hook mode env vars (KSUN-Next legacy reads these in kernel/Kbuild)
+          if [ "${KSU_HOOK_MODE}" = "kprobes" ]; then
+            export KSU_KPROBES_HOOK=true
+          else
+            export KSU_MANUAL_HOOK=true
+          fi
+
           # NOTE: Kernel 4.4 doesn't play nice with ld.lld (empty built-in.o issue).
           # Use Clang for compile but GNU ld (from binutils) for link.
           make O=out ARCH=arm64 \
