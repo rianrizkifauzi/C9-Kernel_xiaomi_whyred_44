@@ -1,0 +1,11 @@
+out/
+build/
+*.zip
+*.img
+*.gz
+toolchain/
+AnyKernel3/
+kernel_source/
+KernelSU-Next/
+susfs4ksu/
+.vscode/
