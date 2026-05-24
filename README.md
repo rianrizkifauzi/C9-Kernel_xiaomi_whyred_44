@@ -14,12 +14,12 @@ dengan integrasi **KernelSU Next** + **SUSFS** terbaru.
 
 | Input | Default | Keterangan |
 |---|---|---|
-| `kernel_repo` | `clarencelol/kernel_xiaomi_whyred` | Source kernel whyred |
-| `kernel_branch` | `lineage-21` | Branch source kernel |
-| `defconfig` | `whyred_defconfig` | Nama defconfig di `arch/arm64/configs/` |
-| `ksun_branch` | `next` | Branch KernelSU-Next (`next` = stable, `next-susfs` = pre-patched) |
-| `susfs_branch` | `kernel-4.4` | Branch SUSFS dari simonpunk/susfs4ksu |
-| `enable_susfs` | `true` | Apply SUSFS patches (set `false` untuk KSUN-only) |
+| `kernel_repo` | `user-why-red/android_kernel_xiaomi_sdm660_44` | Source kernel whyred (active LTS 4.4) |
+| `kernel_branch` | `android-4.4-stable` | Branch source kernel |
+| `defconfig` | `auto` | Autodetect whyred/tulip/sdm660 defconfig |
+| `ksun_branch` | `legacy` | KernelSU-Next branch (`legacy`=non-GKI, `legacy-susfs`=non-GKI+SUSFS, `next`=GKI only) |
+| `susfs_branch` | `kernel-4.4` | Branch SUSFS dari simonpunk/susfs4ksu (hanya dipakai kalau enable_susfs=true dan ksun_branch != legacy-susfs) |
+| `enable_susfs` | `false` | Apply SUSFS patches manual (set `false` kalau pakai `legacy-susfs`) |
 
 ## Push ke GitHub
 

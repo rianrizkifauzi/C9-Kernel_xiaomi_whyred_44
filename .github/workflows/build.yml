@@ -16,9 +16,9 @@ on:
         required: true
         default: 'auto'
       ksun_branch:
-        description: 'KernelSU-Next branch (next | next-susfs)'
+        description: 'KernelSU-Next branch (legacy=non-GKI driver | legacy-susfs=non-GKI+SUSFS | next=GKI only)'
         required: true
-        default: 'next'
+        default: 'legacy'
       susfs_branch:
         description: 'SUSFS branch'
         required: true
@@ -32,6 +32,7 @@ on:
 
 env:
   TZ: Asia/Jakarta
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
   build:
