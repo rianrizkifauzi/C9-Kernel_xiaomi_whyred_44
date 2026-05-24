@@ -8,9 +8,9 @@ on:
         required: true
         default: 'user-why-red/android_kernel_xiaomi_sdm660_44'
       kernel_branch:
-        description: 'Kernel source branch (ksu-patches=KSU pre-patched manual hooks, android-4.4-stable=clean)'
+        description: 'Kernel source branch (android-4.4-stable=clean+min hook patch, ksu-patches=full pre-patched)'
         required: true
-        default: 'ksu-patches'
+        default: 'android-4.4-stable'
       defconfig:
         description: 'Defconfig name (under arch/arm64/configs/). Leave "auto" to autodetect whyred.'
         required: true
@@ -183,49 +183,142 @@ jobs:
         working-directory: kernel_source
         run: |
           set -e
-          # Check if kernel source already has KSU manual hook calls
-          # (e.g. ksu-patches branch of user-why-red has these pre-patched)
+          # Check if kernel source already has KSU manual hook calls (e.g. ksu-patches branch)
           if grep -rq "ksu_handle_execveat\|ksu_handle_faccessat\|ksu_handle_stat" fs/ 2>/dev/null; then
-            echo "✅ Manual KSU hooks detected in kernel source - driver will trigger via syscalls"
-            echo "KSU_HOOK_MODE=manual" >> $GITHUB_ENV
+            echo "✅ Manual KSU hooks already exist in kernel source"
+            echo "KSU_HOOK_MODE=manual_existing" >> $GITHUB_ENV
           else
-            echo "⚠️  No manual hooks in kernel source"
-            echo "KSU_HOOK_MODE=stub" >> $GITHUB_ENV
-            echo "::warning::Kernel source has no KSU manual hooks. Manager may show 'Unsupported'."
-            echo "::warning::Use kernel_branch=ksu-patches for pre-patched whyred source."
+            echo "⚙️  Clean kernel source - will inject MINIMAL hooks (only execveat)"
+            echo "KSU_HOOK_MODE=minimal_inject" >> $GITHUB_ENV
           fi
 
-      - name: Inject KSU hook compatibility shim (rsuntk + ksu-patches kernel)
-        if: ${{ inputs.ksun_repo == 'rsuntk/KernelSU' && env.KSU_HOOK_MODE == 'manual' }}
+      - name: Fix existing hook signatures (ksu-patches branch only)
+        if: ${{ env.KSU_HOOK_MODE == 'manual_existing' }}
         working-directory: kernel_source
         run: |
           set -e
-          echo "=== Fixing KSU hook signature mismatch ==="
-          echo "Issue: ksu-patches whyred calls ksu_handle_stat with 2 args,"
-          echo "       but rsuntk declares ksu_handle_stat with 3 args (third = int *flags)."
-          echo "       Old call passes garbage to flags param -> kernel panic at boot."
-          echo ""
-          echo "Fix: Patch fs/stat.c to call with explicit NULL flags (3 args)."
-
-          # 1) Update extern declaration to 3-arg signature
-          if grep -q "extern int ksu_handle_stat(int \*dfd, const char __user \*\*filename_user);" fs/stat.c; then
-            sed -i 's|extern int ksu_handle_stat(int \*dfd, const char __user \*\*filename_user);|extern int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags);|' fs/stat.c
-            echo "  ✅ Updated extern declaration to 3-arg"
-          fi
-
-          # 2) Update call site to pass NULL as third arg
+          echo "=== Fixing hook signature mismatch (rsuntk expects 3-arg ksu_handle_stat) ==="
           if grep -q "ksu_handle_stat(&dfd, &filename);" fs/stat.c; then
+            sed -i 's|extern int ksu_handle_stat(int \*dfd, const char __user \*\*filename_user);|extern int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags);|' fs/stat.c
             sed -i 's|ksu_handle_stat(&dfd, &filename);|ksu_handle_stat(\&dfd, \&filename, NULL);|' fs/stat.c
-            echo "  ✅ Updated call to pass NULL flags"
+            echo "  ✅ fs/stat.c patched to 3-arg signature"
           fi
 
-          # 3) Verify
+      - name: Inject MINIMAL execveat hook into clean kernel source
+        if: ${{ env.KSU_HOOK_MODE == 'minimal_inject' && inputs.ksun_repo == 'rsuntk/KernelSU' }}
+        working-directory: kernel_source
+        run: |
+          set -e
+          echo "=== Strategy: inject ONLY ksu_handle_execveat hook in fs/exec.c ==="
+          echo "Surface area minimal -> isolated bug surface if bootloop"
+          echo ""
+
+          if [ ! -f fs/exec.c ]; then
+            echo "::error::fs/exec.c not found"; exit 1
+          fi
+          if grep -q "ksu_handle_execveat" fs/exec.c; then
+            echo "  ⚠️  hook already present, skipping"
+            exit 0
+          fi
+
+          # Detect target function name
+          if grep -q "^static int do_execveat_common(int fd, struct filename" fs/exec.c; then
+            TGT="do_execveat_common"
+          elif grep -q "^static int __do_execve_file(int fd, struct filename" fs/exec.c; then
+            TGT="__do_execve_file"
+          else
+            echo "::error::Cannot find execveat function in fs/exec.c"
+            grep -n "^static int.*int fd, struct filename" fs/exec.c | head -5
+            exit 1
+          fi
+          echo "  Target function: ${TGT}"
+
+          # Use awk for reliable multi-line injection (no python heredoc indent issues)
+          cp fs/exec.c fs/exec.c.bak
+          awk -v tgt="$TGT" '
+          BEGIN {
+            inserted_extern = 0
+            after_func_sig = 0
+            inserted_hook = 0
+            in_includes = 1
+            last_include_line = ""
+          }
+          # Track end of #include block: insert extern decls after last #include
+          /^#include/ {
+            if (in_includes) {
+              print
+              last_include_line = NR
+              next
+            }
+          }
+          # First non-include line after include block
+          {
+            if (in_includes && last_include_line != "" && !/^#include/ && !/^[[:space:]]*$/) {
+              # Print extern decls
+              print ""
+              print "// KSU manual hook (minimal injection)"
+              print "extern bool ksu_execveat_hook __read_mostly;"
+              print "extern int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv,"
+              print "                                void *envp, int *flags);"
+              print "extern int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,"
+              print "                                         void *argv, void *envp, int *flags);"
+              print ""
+              in_includes = 0
+              inserted_extern = 1
+            }
+          }
+          # Detect target function start (multi-line signature)
+          $0 ~ ("^static int " tgt "\\(int fd, struct filename") {
+            print
+            after_func_sig = 1
+            next
+          }
+          # After function signature, find opening brace alone on line
+          after_func_sig && /^\{$/ {
+            print
+            print "\tif (likely(ksu_execveat_hook))"
+            print "\t\tksu_handle_execveat(&fd, &filename, &argv, &envp, &flags);"
+            print "\telse"
+            print "\t\tksu_handle_execveat_sucompat(&fd, &filename, NULL, NULL, NULL);"
+            after_func_sig = 0
+            inserted_hook = 1
+            next
+          }
+          { print }
+          END {
+            if (!inserted_extern) {
+              print "AWK: extern not inserted (in_includes=" in_includes ", last_inc=" last_include_line ")" > "/dev/stderr"
+              exit 1
+            }
+            if (!inserted_hook) {
+              print "AWK: hook call not inserted" > "/dev/stderr"
+              exit 1
+            }
+          }
+          ' fs/exec.c.bak > fs/exec.c
+
+          if [ $? -ne 0 ]; then
+            echo "::error::awk injection failed; restoring backup"
+            mv fs/exec.c.bak fs/exec.c
+            exit 1
+          fi
+
           echo ""
           echo "=== Verification ==="
-          grep -n "ksu_handle_stat" fs/stat.c || echo "  No matches found"
-          echo ""
-          echo "=== rsuntk handles ksu_handle_vfs_read & ksu_handle_sys_read internally ==="
-          echo "(no shim needed - rsuntk runtime/ksud.c defines them)"
+          if grep -q "ksu_handle_execveat" fs/exec.c; then
+            echo "  ✅ Hook injection successful"
+            echo ""
+            echo "  --- extern decls ---"
+            grep -n "extern.*ksu_handle_execveat\|extern bool ksu_execveat_hook" fs/exec.c
+            echo ""
+            echo "  --- call site ---"
+            grep -n -B1 -A1 "ksu_handle_execveat(&fd" fs/exec.c | head -10
+          else
+            echo "::error::Hook injection failed (no marker in output)"
+            mv fs/exec.c.bak fs/exec.c
+            exit 1
+          fi
+          rm -f fs/exec.c.bak
 
       - name: Clone SUSFS
         if: ${{ inputs.enable_susfs == 'true' }}
@@ -272,14 +365,8 @@ jobs:
             echo ""
             echo "# === KernelSU ==="
             echo "CONFIG_KSU=y"
-            echo "CONFIG_KSU_DEBUG=y"
+            echo "CONFIG_KSU_DEBUG=n"
             echo "CONFIG_OVERLAY_FS=y"
-            echo ""
-            echo "# === Pstore for crash diagnostic ==="
-            echo "CONFIG_PSTORE=y"
-            echo "CONFIG_PSTORE_CONSOLE=y"
-            echo "CONFIG_PSTORE_PMSG=y"
-            echo "CONFIG_PSTORE_RAM=y"
           } >> "${DCFG_PATH}"
 
           if [ "${KSU_HOOK_MODE}" = "auto" ]; then
@@ -296,7 +383,7 @@ jobs:
             echo "Using KPROBES hooks"
           else
             echo "CONFIG_KSU_MANUAL_HOOK=y" >> "${DCFG_PATH}"
-            echo "Using MANUAL hooks"
+            echo "Using MANUAL hooks (mode: ${KSU_HOOK_MODE})"
           fi
 
           if [ "${{ inputs.enable_susfs }}" = "true" ]; then
