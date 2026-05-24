@@ -1,0 +1,2 @@
+Linux version 4.4.302-Reza-Recovery (reza@ancientdedicated) (gcc version 4.9.x 20150123 (prerelease) (GCC)) #2 SMP PREEMPT Tue Apr 11 01:26:23 WIB 2023
+Linux localhost 4.4.302-Reza-Recovery #2 SMP PREEMPT Tue Apr 11 01:26:23 WIB 2023 aarch64

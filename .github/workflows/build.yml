@@ -195,6 +195,77 @@ jobs:
             echo "::warning::Use kernel_branch=ksu-patches for pre-patched whyred source."
           fi
 
+      - name: Inject KSU hook compatibility shim (rsuntk + ksu-patches kernel)
+        if: ${{ inputs.ksun_repo == 'rsuntk/KernelSU' && env.KSU_HOOK_MODE == 'manual' }}
+        working-directory: kernel_source
+        run: |
+          set -e
+          echo "=== Adding KSU hook compatibility shim ==="
+          echo "Reason: ksu-patches branch uses old hook signatures (e.g. ksu_handle_stat with 2 args,"
+          echo "        ksu_handle_vfs_read which doesn't exist in rsuntk). Adding stubs to prevent"
+          echo "        undefined-symbol crash and arg-mismatch panic at runtime."
+
+          mkdir -p kernel
+          cat > kernel/ksu_compat_shim.c <<'SHIM_EOF'
+          /*
+           * KSU rsuntk compatibility shim
+           * Provides stub implementations for legacy hook signatures
+           * that ksu-patches kernel sources call but rsuntk doesn't define
+           * or defines with different signatures.
+           */
+          #include <linux/kernel.h>
+          #include <linux/module.h>
+          #include <linux/fs.h>
+
+          /* Legacy 2-arg ksu_handle_stat (rsuntk has 3-arg). 
+           * ksu-patches kernel calls this; we make it a no-op shim with the legacy signature.
+           * Real rsuntk ksu_handle_stat (3-arg) exists in driver, but won't be called from
+           * syscall path. su -> sh redirection will not work via stat, only via faccessat
+           * and execve which still have matching signatures. */
+          int ksu_handle_stat_legacy_2arg(int *dfd, const char __user **filename_user)
+          {
+              /* No-op: faccessat hook handles the same logic */
+              return 0;
+          }
+
+          /* ksu_handle_vfs_read does not exist in rsuntk. We stub it.
+           * In KSUN-Next/upstream this is used for ksud signaling. rsuntk uses different mechanism. */
+          int ksu_handle_vfs_read(struct file **file_ptr, char __user **buf_ptr,
+                                  size_t *count_ptr, loff_t **pos)
+          {
+              return 0;
+          }
+          EXPORT_SYMBOL_GPL(ksu_handle_vfs_read);
+
+          /* ksu_handle_sys_read also doesn't exist - stub for safety */
+          int ksu_handle_sys_read(unsigned int fd, char __user **buf_ptr, size_t *count_ptr)
+          {
+              return 0;
+          }
+          EXPORT_SYMBOL_GPL(ksu_handle_sys_read);
+          SHIM_EOF
+
+          # Hijack legacy ksu_handle_stat call: replace 2-arg call with shim that has matching signature
+          # The kernel source has: ksu_handle_stat(&dfd, &filename);
+          # We rename the symbol it calls to the legacy stub so it doesn't conflict with rsuntk's 3-arg version
+          if grep -q "ksu_handle_stat(&dfd, &filename);" fs/stat.c; then
+            echo "Patching fs/stat.c to use legacy 2-arg shim..."
+            sed -i 's|extern int ksu_handle_stat(int \*dfd, const char __user \*\*filename_user);|extern int ksu_handle_stat_legacy_2arg(int *dfd, const char __user **filename_user);|' fs/stat.c
+            sed -i 's|ksu_handle_stat(&dfd, &filename);|ksu_handle_stat_legacy_2arg(\&dfd, \&filename);|' fs/stat.c
+            echo "  ✅ fs/stat.c patched"
+          fi
+
+          # Add shim to kernel build
+          if ! grep -q "ksu_compat_shim.o" kernel/Makefile; then
+            echo "obj-y += ksu_compat_shim.o" >> kernel/Makefile
+            echo "  ✅ Added ksu_compat_shim.o to kernel/Makefile"
+          fi
+
+          echo ""
+          echo "=== Verification ==="
+          ls -la kernel/ksu_compat_shim.c
+          tail -3 kernel/Makefile
+
       - name: Clone SUSFS
         if: ${{ inputs.enable_susfs == 'true' }}
         run: |
@@ -240,7 +311,14 @@ jobs:
             echo ""
             echo "# === KernelSU ==="
             echo "CONFIG_KSU=y"
+            echo "CONFIG_KSU_DEBUG=y"
             echo "CONFIG_OVERLAY_FS=y"
+            echo ""
+            echo "# === Pstore for crash diagnostic ==="
+            echo "CONFIG_PSTORE=y"
+            echo "CONFIG_PSTORE_CONSOLE=y"
+            echo "CONFIG_PSTORE_PMSG=y"
+            echo "CONFIG_PSTORE_RAM=y"
           } >> "${DCFG_PATH}"
 
           if [ "${KSU_HOOK_MODE}" = "auto" ]; then

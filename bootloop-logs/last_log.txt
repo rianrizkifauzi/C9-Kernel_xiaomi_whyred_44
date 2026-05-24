@@ -1,0 +1,2783 @@
+Starting OrangeFox Recovery R11.1 [default, core: R11.1] (built on Tue Apr 11 04:27:36 2023 for whyred [dev_ver: 2022-12-05 (bc51c51d)]; pid 542)
+RECOVERY_SDCARD_ON_DATA := true
+TW_NO_USB_STORAGE := true
+TW_INCLUDE_CRYPTO := true
+I:TW_BRIGHTNESS_PATH := /sys/class/leds/lcd-backlight/brightness
+I:Found brightness file at '/sys/class/leds/lcd-backlight/brightness'
+I:TWFunc::Set_Brightness: Setting brightness control to 4095
+I:LANG: en
+Starting the UI...
+setting DRM_FORMAT_RGBX8888 and GGL_PIXEL_FORMAT_RGBX_8888
+cannot find/open a drm device: No such file or directory
+fb0 reports (possibly inaccurate):
+  vi.bits_per_pixel = 32
+  vi.red.offset   =   0   .length =   8
+  vi.green.offset =   8   .length =   8
+  vi.blue.offset  =  16   .length =   8
+setting GGL_PIXEL_FORMAT_RGBA_8888
+double buffered
+framebuffer: 0 (1080 x 2160)
+Using fbdev graphics.
+I:TWFunc::Set_Brightness: Setting brightness control to 4095
+TW_SCREEN_BLANK_ON_BOOT := true
+I:TWFunc::Set_Brightness: Setting brightness control to 0
+I:TWFunc::Set_Brightness: Setting brightness control to 4095
+I:Loading package: splash (/twres/splash.xml)
+I:Load XML directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/splash.xml' directly
+I:Checking resolution...
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page splash
+I:Switching packages (splash)
+=> Linking mtab
+=> Processing /etc/recovery.fstab for SAR-detection
+I:Reading /etc/recovery.fstab
+I:Done processing fstab files
+I:FOX-SAR-DETECT: Non-SAR System detected
+=> Processing /etc/recovery.fstab
+I:Reading /etc/recovery.fstab
+I:Processing '/boot'
+I:Processing '/recovery'
+I:Processing '/cache'
+I:Processing '/data'
+I:Processing '/storage'
+I:Processing '/system'
+I:Processing '/system_image'
+I:Processing '/vendor'
+I:Processing '/vendor_image'
+I:Processing '/persist'
+I:Created '/persist' folder.
+I:Attempt to load settings from /persist settings file...
+I:InfoManager loading from '/persist/.foxs'.
+I:TWFunc::Set_Brightness: Setting brightness control to 4095
+I:PassBak: Found backup
+I:TWFunc::Fixup_Time: Pre-fix date and time: 1970-01-01--02-53-11
+I:TWFunc::Fixup_Time: Setting time offset from file /sys/class/rtc/rtc0/since_epoch
+I:Cannot find file /persist/.fox_epoch_drift.cfg
+I:TWFunc::Fixup_Time: Wrong date and time epoch in /sys/class/rtc/rtc0/since_epoch
+I:TWFunc::Fixup_Time: will attempt to use the ats files now.
+I:TWFunc::Fixup_Time: Setting time offset from file /persist/time/ats_2, offset 1779649864769
+I:TWFunc::Fixup_Time: Date and time corrected: 2026-05-24--22-04-15
+I:Processing '/persist_image'
+I:Processing '/splash'
+I:Processing '/firmware'
+I:Processing '/firmware_image'
+I:Processing '/cust'
+I:Created '/cust' folder.
+I:Processing '/cust_image'
+I:Processing '/misc'
+I:Processing '/modem'
+I:Processing '/bluetooth'
+I:Processing '/dsp'
+I:Processing '/efs1'
+I:Processing '/efs2'
+I:Processing '/efsc'
+I:Processing '/efsg'
+I:Processing '/sdcard1'
+I:Created '/sdcard1' folder.
+I:Processing '/usb_otg'
+I:Created '/usb_otg' folder.
+I:Processing '/aboot'
+I:Processing '/cmnlib'
+I:Processing '/tz'
+I:Processing '/rpm'
+I:Processing '/keymaster'
+I:Processing '/devcfg'
+I:Done processing fstab files
+I:Setting up '/data' as data/media emulated storage.
+I:Process ended with no errors.
+I:Process ended with no errors.
+I:Trying wrapped key.
+I:
+Device not encrypted/Unable to decrypt FBE device
+
+I:Setting up '/data' as data/media emulated storage.
+I:Process ended with no errors.
+I:Backup folder set to '/data/media/0/Fox/BACKUPS/26bea10'
+I:Settings storage is '/data/media/0'
+I:Decrypt adopted storage starting
+I:PageManager::LoadFileToBuffer loading filename: '/data/system/storage.xml' directly
+I:No /data/system/storage.xml for adopted storage
+Updating partition details...
+I:Data backup size is 1133MB, free: 17786MB.
+I:Can't probe device /data/media/0
+Failed to mount '/cust' (Invalid argument)
+I:Actual block device: '/dev/block/mmcblk0p63', current file system: 'ext4'
+I:Unable to mount '/sdcard1'
+I:Actual block device: '', current file system: 'vfat'
+I:Unable to mount '/usb_otg'
+I:Actual block device: '', current file system: 'vfat'
+...done
+I:Unmounting main partitions...
+
+
+Partition Logs:
+/boot | /dev/block/mmcblk0p58 | Size: 64MB
+   Flags: Can_Be_Backed_Up IsPresent Can_Flash_Img 
+   Primary_Block_Device: /dev/block/mmcblk0p58
+   Display_Name: Boot
+   Storage_Name: boot
+   Backup_Path: /boot
+   Backup_Name: boot
+   Backup_Display_Name: Boot
+   Storage_Path: /boot
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/recovery | /dev/block/mmcblk0p59 | Size: 64MB
+   Flags: Can_Be_Backed_Up IsPresent Can_Flash_Img 
+   Primary_Block_Device: /dev/block/mmcblk0p59
+   Display_Name: Recovery
+   Storage_Name: recovery
+   Backup_Path: /recovery
+   Backup_Name: recovery
+   Backup_Display_Name: Recovery
+   Storage_Path: /recovery
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/cache | /dev/block/mmcblk0p60 | Size: 231MB Used: 0MB Free: 231MB Backup Size: 0MB
+   Flags: Can_Be_Mounted Can_Be_Wiped Can_Be_Backed_Up Wipe_During_Factory_Reset Wipe_Available_in_GUI IsPresent 
+   Primary_Block_Device: /dev/block/mmcblk0p60
+   Display_Name: Cache
+   Storage_Name: Cache
+   Backup_Path: /cache
+   Backup_Name: cache
+   Backup_Display_Name: Cache
+   Storage_Path: /cache
+   Current_File_System: ext4
+   Fstab_File_System: ext4
+   Backup_Method: files
+
+/data | /dev/block/mmcblk0p64 | Size: 22294MB Used: 1133MB Free: 17786MB Backup Size: 1133MB
+   Flags: Can_Be_Mounted Can_Be_Wiped Can_Be_Backed_Up Wipe_During_Factory_Reset Wipe_Available_in_GUI IsPresent Can_Be_Encrypted Has_Data_Media Can_Encrypt_Backup Use_Userdata_Encryption Is_Storage Is_Settings_Storage 
+   Symlink_Path: /data/media/0
+   Symlink_Mount_Point: /sdcard
+   Primary_Block_Device: /dev/block/mmcblk0p64
+   Length: -16384
+   Display_Name: Data
+   Storage_Name: Internal Storage
+   Backup_Path: /data
+   Backup_Name: data
+   Backup_Display_Name: Data
+   Storage_Path: /data/media/0
+   Current_File_System: ext4
+   Fstab_File_System: ext4
+   Backup_Method: files
+   MTP_Storage_ID: 65537
+
+/storage | /data/media/0 | Size: 22294MB Used: 4508MB Free: 17786MB Backup Size: 4508MB
+   Flags: Can_Be_Mounted Can_Be_Wiped Use_Rm_Rf Can_Be_Backed_Up Removable IsPresent 
+   Primary_Block_Device: /data/media/0
+   Display_Name: Internal Storage
+   Storage_Name: Internal Storage
+   Backup_Path: /storage
+   Backup_Name: storage
+   Backup_Display_Name: Internal Storage
+   Storage_Path: /storage
+   Current_File_System: ext4
+   Fstab_File_System: ext4
+   Backup_Method: files
+   Mount_Flags: 4096, Mount_Options: 
+
+/system | /dev/block/mmcblk0p61 | Size: 2959MB Used: 1578MB Free: 1381MB Backup Size: 1578MB
+   Flags: Can_Be_Mounted Can_Be_Wiped Can_Be_Backed_Up Wipe_Available_in_GUI IsPresent Mount_Read_Only 
+   Primary_Block_Device: /dev/block/mmcblk0p61
+   Display_Name: System
+   Storage_Name: System
+   Backup_Path: /system
+   Backup_Name: system
+   Backup_Display_Name: System
+   Storage_Path: /system
+   Current_File_System: ext4
+   Fstab_File_System: ext4
+   Backup_Method: files
+
+/system_image | /dev/block/mmcblk0p61 | Size: 3072MB
+   Flags: Can_Be_Backed_Up IsPresent Can_Flash_Img 
+   Primary_Block_Device: /dev/block/mmcblk0p61
+   Display_Name: System Image
+   Storage_Name: System Image
+   Backup_Path: /system_image
+   Backup_Name: system_image
+   Backup_Display_Name: System Image
+   Storage_Path: /system_image
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/vendor | /dev/block/mmcblk0p62 | Size: 1951MB Used: 456MB Free: 1494MB Backup Size: 456MB
+   Flags: Can_Be_Mounted Can_Be_Wiped Can_Be_Backed_Up Wipe_Available_in_GUI IsPresent Mount_Read_Only 
+   Primary_Block_Device: /dev/block/mmcblk0p62
+   Display_Name: Vendor
+   Storage_Name: Vendor
+   Backup_Path: /vendor
+   Backup_Name: vendor
+   Backup_Display_Name: Vendor
+   Storage_Path: /vendor
+   Current_File_System: ext4
+   Fstab_File_System: ext4
+   Backup_Method: files
+
+/vendor_image | /dev/block/mmcblk0p62 | Size: 2048MB
+   Flags: Can_Be_Backed_Up IsPresent Can_Flash_Img 
+   Primary_Block_Device: /dev/block/mmcblk0p62
+   Display_Name: Vendor Image
+   Storage_Name: Vendor Image
+   Backup_Path: /vendor_image
+   Backup_Name: vendor_image
+   Backup_Display_Name: Vendor Image
+   Storage_Path: /vendor_image
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/persist | /dev/block/mmcblk0p53 | Size: 26MB Used: 0MB Free: 26MB Backup Size: 0MB
+   Flags: Can_Be_Mounted Can_Be_Wiped IsPresent 
+   Primary_Block_Device: /dev/block/mmcblk0p53
+   Display_Name: Persist
+   Storage_Name: Persist
+   Backup_Path: /persist
+   Backup_Name: persist
+   Backup_Display_Name: Persist
+   Storage_Path: /persist
+   Current_File_System: ext4
+   Fstab_File_System: ext4
+   Backup_Method: files
+
+/persist_image | /dev/block/mmcblk0p53 | Size: 32MB
+   Flags: Can_Be_Backed_Up IsPresent Can_Flash_Img 
+   Primary_Block_Device: /dev/block/mmcblk0p53
+   Display_Name: Persist
+   Storage_Name: Persist
+   Backup_Path: /persist_image
+   Backup_Name: persist_image
+   Backup_Display_Name: Persist
+   Storage_Path: /persist_image
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/splash | /dev/block/mmcblk0p52 | Size: 64MB
+   Flags: Can_Be_Backed_Up IsPresent Can_Flash_Img 
+   Primary_Block_Device: /dev/block/mmcblk0p52
+   Display_Name: Splash Image
+   Storage_Name: Splash Image
+   Backup_Path: /splash
+   Backup_Name: splash
+   Backup_Display_Name: Splash Image
+   Storage_Path: /splash
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/firmware | /dev/block/mmcblk0p56 | Size: 191MB Used: 105MB Free: 86MB Backup Size: 105MB
+   Flags: Can_Be_Mounted Can_Be_Wiped IsPresent Mount_To_Decrypt Mount_Read_Only 
+   Primary_Block_Device: /dev/block/mmcblk0p56
+   Display_Name: Firmware
+   Storage_Name: Firmware
+   Backup_Path: /firmware
+   Backup_Name: firmware
+   Backup_Display_Name: Firmware
+   Storage_Path: /firmware
+   Current_File_System: vfat
+   Fstab_File_System: vfat
+   Backup_Method: files
+
+/firmware_image | /dev/block/mmcblk0p56 | Size: 192MB
+   Flags: Can_Be_Backed_Up IsPresent Can_Flash_Img 
+   Primary_Block_Device: /dev/block/mmcblk0p56
+   Display_Name: Firmware
+   Storage_Name: Firmware
+   Backup_Path: /firmware_image
+   Backup_Name: firmware_image
+   Backup_Display_Name: Firmware
+   Storage_Path: /firmware_image
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/cust | /dev/block/mmcblk0p63 | Size: 0MB Used: 0MB Free: 0MB Backup Size: 0MB
+   Flags: Can_Be_Mounted Can_Be_Wiped IsPresent 
+   Primary_Block_Device: /dev/block/mmcblk0p63
+   Display_Name: Cust
+   Storage_Name: Cust
+   Backup_Path: /cust
+   Backup_Name: cust
+   Backup_Display_Name: Cust
+   Storage_Path: /cust
+   Current_File_System: ext4
+   Fstab_File_System: ext4
+   Backup_Method: files
+
+/cust_image | /dev/block/mmcblk0p63 | Size: 832MB
+   Flags: Can_Be_Backed_Up IsPresent Can_Flash_Img 
+   Primary_Block_Device: /dev/block/mmcblk0p63
+   Display_Name: Cust
+   Storage_Name: Cust
+   Backup_Path: /cust_image
+   Backup_Name: cust_image
+   Backup_Display_Name: Cust
+   Storage_Path: /cust_image
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/misc | /dev/block/mmcblk0p42 | Size: 4MB
+   Flags: IsPresent 
+   Primary_Block_Device: /dev/block/mmcblk0p42
+   Display_Name: misc
+   Storage_Name: misc
+   Backup_Path: /misc
+   Backup_Name: misc
+   Backup_Display_Name: misc
+   Storage_Path: /misc
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/modem | /dev/block/mmcblk0p56 | Size: 192MB
+   Flags: Can_Be_Backed_Up Has_SubPartition IsPresent 
+   Primary_Block_Device: /dev/block/mmcblk0p56
+   Display_Name: Modem
+   Storage_Name: Modem
+   Backup_Path: /modem
+   Backup_Name: modem
+   Backup_Display_Name: Modem
+   Storage_Path: /modem
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/bluetooth | /dev/block/mmcblk0p38 | Size: 1MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /modem
+   Primary_Block_Device: /dev/block/mmcblk0p38
+   Display_Name: Bluetooth
+   Storage_Name: Bluetooth
+   Backup_Path: /bluetooth
+   Backup_Name: bluetooth
+   Backup_Display_Name: Bluetooth
+   Storage_Path: /bluetooth
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/dsp | /dev/block/mmcblk0p48 | Size: 16MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /modem
+   Primary_Block_Device: /dev/block/mmcblk0p48
+   Display_Name: dsp
+   Storage_Name: dsp
+   Backup_Path: /dsp
+   Backup_Name: dsp
+   Backup_Display_Name: dsp
+   Storage_Path: /dsp
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/efs1 | /dev/block/mmcblk0p46 | Size: 8MB
+   Flags: Can_Be_Backed_Up Has_SubPartition IsPresent 
+   Primary_Block_Device: /dev/block/mmcblk0p46
+   Display_Name: EFS
+   Storage_Name: EFS
+   Backup_Path: /efs1
+   Backup_Name: efs1
+   Backup_Display_Name: EFS
+   Storage_Path: /efs1
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/efs2 | /dev/block/mmcblk0p47 | Size: 8MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /efs1
+   Primary_Block_Device: /dev/block/mmcblk0p47
+   Display_Name: efs2
+   Storage_Name: efs2
+   Backup_Path: /efs2
+   Backup_Name: efs2
+   Backup_Display_Name: efs2
+   Storage_Path: /efs2
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/efsc | /dev/block/mmcblk0p3 | Size: 0MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /efs1
+   Primary_Block_Device: /dev/block/mmcblk0p3
+   Display_Name: efsc
+   Storage_Name: efsc
+   Backup_Path: /efsc
+   Backup_Name: efsc
+   Backup_Display_Name: efsc
+   Storage_Path: /efsc
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/efsg | /dev/block/mmcblk0p45 | Size: 8MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /efs1
+   Primary_Block_Device: /dev/block/mmcblk0p45
+   Display_Name: efsg
+   Storage_Name: efsg
+   Backup_Path: /efsg
+   Backup_Name: efsg
+   Backup_Display_Name: efsg
+   Storage_Path: /efsg
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/sdcard1 |  | Size: 0MB Used: 0MB Free: 0MB Backup Size: 0MB
+   Flags: Can_Be_Mounted Can_Be_Wiped Wipe_Available_in_GUI Removable Is_Storage 
+   Primary_Block_Device: /dev/block/mmcblk1p1
+   Alternate_Block_Device: /dev/block/mmcblk1
+   Display_Name: MicroSD Card
+   Storage_Name: MicroSD Card
+   Backup_Path: /sdcard1
+   Backup_Name: sdcard1
+   Backup_Display_Name: MicroSD Card
+   Storage_Path: /sdcard1
+   Current_File_System: vfat
+   Fstab_File_System: vfat
+   Backup_Method: files
+   Mount_Flags: 0, Mount_Options: utf8
+   MTP_Storage_ID: 65538
+
+/usb_otg |  | Size: 0MB Used: 0MB Free: 0MB Backup Size: 0MB
+   Flags: Can_Be_Mounted Can_Be_Wiped Wipe_Available_in_GUI Removable Is_Storage 
+   Primary_Block_Device: /dev/block/sda1
+   Alternate_Block_Device: /dev/block/sda
+   Display_Name: USB-Storage
+   Storage_Name: USB-Storage
+   Backup_Path: /usb_otg
+   Backup_Name: usb_otg
+   Backup_Display_Name: USB-Storage
+   Storage_Path: /usb_otg
+   Current_File_System: vfat
+   Fstab_File_System: vfat
+   Backup_Method: files
+   Mount_Flags: 0, Mount_Options: utf8
+   MTP_Storage_ID: 65539
+
+/aboot |  | Size: 0MB
+   Flags: Can_Be_Backed_Up Has_SubPartition 
+   Primary_Block_Device: /dev/block/bootdevice/by-name/aboot
+   Display_Name: Bootloader
+   Storage_Name: Bootloader
+   Backup_Path: /aboot
+   Backup_Name: aboot
+   Backup_Display_Name: Bootloader
+   Storage_Path: /aboot
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/cmnlib | /dev/block/mmcblk0p21 | Size: 1MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /aboot
+   Primary_Block_Device: /dev/block/mmcblk0p21
+   Display_Name: cmnlib
+   Storage_Name: cmnlib
+   Backup_Path: /cmnlib
+   Backup_Name: cmnlib
+   Backup_Display_Name: cmnlib
+   Storage_Path: /cmnlib
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/tz | /dev/block/mmcblk0p32 | Size: 4MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /aboot
+   Primary_Block_Device: /dev/block/mmcblk0p32
+   Display_Name: tz
+   Storage_Name: tz
+   Backup_Path: /tz
+   Backup_Name: tz
+   Backup_Display_Name: tz
+   Storage_Path: /tz
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/rpm | /dev/block/mmcblk0p15 | Size: 0MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /aboot
+   Primary_Block_Device: /dev/block/mmcblk0p15
+   Display_Name: rpm
+   Storage_Name: rpm
+   Backup_Path: /rpm
+   Backup_Name: rpm
+   Backup_Display_Name: rpm
+   Storage_Path: /rpm
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/keymaster | /dev/block/mmcblk0p36 | Size: 1MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /aboot
+   Primary_Block_Device: /dev/block/mmcblk0p36
+   Display_Name: keymaster
+   Storage_Name: keymaster
+   Backup_Path: /keymaster
+   Backup_Name: keymaster
+   Backup_Display_Name: keymaster
+   Storage_Path: /keymaster
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/devcfg | /dev/block/mmcblk0p31 | Size: 1MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /aboot
+   Primary_Block_Device: /dev/block/mmcblk0p31
+   Display_Name: devcfg
+   Storage_Name: devcfg
+   Backup_Path: /devcfg
+   Backup_Name: devcfg
+   Backup_Display_Name: devcfg
+   Storage_Path: /devcfg
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+I:DEBUG: OrangeFox: running the startup script...
+FOX_BUILD_DATE=Tue Apr 11 04:27:36 2023
+DEBUG: OrangeFox: FOX_DEVICE=whyred
+DEBUG: OrangeFox: FOX_KERNEL=4.4.302-Reza-Recovery
+DEBUG: OrangeFox: SYSTEM_ROOT=0
+DEBUG: OrangeFox: PROPER_SAR=0
+DEBUG: OrangeFox: FOX_SCRIPT_DATE=20211112
+
+DEBUG: OrangeFox: REALTREBLE=0
+DEBUG: OrangeFox: ANDROID_SDK=29
+DEBUG: OrangeFox: INCREMENTAL_VERSION=b03b2f2bb8
+DEBUG: OrangeFox: BUILD_FLAVOR=qassa_whyred-userdebug
+DEBUG: OrangeFox: ROM_FINGERPRINT=Xiaomi/qassa_whyred/whyred:10/QQ3A.200805.001/b03b2f2bb8:userdebug/release-keys
+DEBUG: OrangeFox: check for Treble.
+DEBUG: OrangeFox: detected a Non-Treble ROM.
+DEBUG: OrangeFox: check for MIUI.
+DEBUG: OrangeFox: detected a Custom ROM.
+I:Process ended with no errors.
+I:- Using the ROM's incremental version (b03b2f2bb8)
+I:Process ended with no errors.
+I:- Using the ROM's fingerprint (Xiaomi/qassa_whyred/whyred:10/QQ3A.200805.001/b03b2f2bb8:userdebug/release-keys)
+I:Process ended with no errors.
+I:Loading package: OrangeFox (/data/media/0/Fox/.bin./pa.zip)
+I:Loading zip theme
+I:Loading package: OrangeFox (/twres/ui.xml)
+I:Load XML directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/zn_TW.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/zh_CN.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/ua.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/tr.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/ru.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/ro.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/pt_PT.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/pl.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/it.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/id.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/hu.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/fr.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/es-ES.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/en.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/el.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/de.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/cs.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/en.xml' directly
+parsing languageFile
+parsing languageFile done
+I:PageManager::LoadFileToBuffer loading filename: '/twres/ui.xml' directly
+I:Checking resolution...
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /sdcard/Fox/.navbar/navbar.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/sdcard/Fox/.navbar/navbar.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/themes/navbar.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /sdcard/Fox/.theme/font.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/sdcard/Fox/.theme/font.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/themes/font.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /sdcard/Fox/.theme/style.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/sdcard/Fox/.theme/style.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/themes/style.xml' directly
+I:Loading resources...
+I:Failed to load image from Default/Progress/indeterminate033, error -1
+I:Loading variables...
+I:Loading pages...
+I:Including file: /sdcard/Fox/.theme/accent.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/sdcard/Fox/.theme/accent.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/themes/accent.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /sdcard/Fox/.theme/action.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/sdcard/Fox/.theme/action.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/themes/action.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/resources/images.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/resources/images.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/resources/vars.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/resources/vars.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/resources/styles.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/resources/styles.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/pages/templates/base.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/templates/base.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/pages/templates/keyboard.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/templates/keyboard.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/pages/templates/navbar.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/templates/navbar.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/pages/templates/statusbar.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/templates/statusbar.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/pages/templates/templates.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/templates/templates.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/pages/main.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/main.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page main
+I:Loading page navbar
+I:Loading page welcome
+I:Loading page aroma_busy
+I:Loading page fastboot
+I:Including file: /twres/pages/pass.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/pass.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page password_enter
+I:Loading page password_enter_num
+I:Loading page password_enter_pattern
+I:Loading page password_check
+I:Loading page pass_pattern
+I:Loading page pass_pattern_2
+I:Loading page pass_text
+I:Loading page pass_text_2
+I:Loading page pass_pin
+I:Loading page pass_pin_2
+I:Loading page pass_remove
+I:Loading page pass_check
+I:Including file: /twres/pages/install.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/install.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page flash_confirm
+I:Loading page fox_modules_confirm
+I:Loading page queueview
+I:Loading page flash_image_confirm
+I:Loading page flash_image_ab
+I:Loading page add_zip
+I:Loading page flash_zip
+I:Loading page flash_image
+I:Loading page flash_done
+I:Loading page flash_sleep_and_reboot
+I:Loading page flash_image_done
+I:Including file: /twres/pages/wipe.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/wipe.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page wipe
+I:Loading page formatdata
+I:Loading page formatdata_confirm
+I:Loading page wipe_confirm_action
+I:Loading page wipe_action_page
+I:Loading page wipe_action_complete
+I:Loading page checkpartitionlist
+I:Loading page partitionoptions
+I:Loading page refreshfilesystem
+I:Loading page selectfilesystem
+I:Loading page part_options
+I:Including file: /twres/pages/backup.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/backup.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page backup
+I:Loading page check_storage_back
+I:Loading page backup_prep
+I:Loading page backupname
+I:Loading page backupname_auto
+I:Loading page backup_encryption
+I:Loading page backup_encryption2
+I:Loading page checkbackuppassword
+I:Loading page checkbackuppassword2
+I:Loading page backup_run
+I:Loading page backup_digest
+I:Loading page backup_action_complete
+I:Including file: /twres/pages/restore.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/restore.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page restore
+I:Loading page restore_prep
+I:Loading page restore_read
+I:Loading page restore_decrypt
+I:Loading page try_restore_decrypt
+I:Loading page restore_select
+I:Loading page renamebackup
+I:Loading page deletebackup
+I:Loading page restore_run
+I:Loading page restore_confirm_action
+I:Loading page restore_action_page
+I:Loading page restore_action_complete
+I:Including file: /twres/pages/mount.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/mount.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page mount
+I:Loading page usb_mount
+I:Loading page system_readonly_check
+I:Loading page system_readonly
+I:Loading page system_readonly_mount
+I:Loading page decrypt
+I:Loading page decrypt_pin
+I:Loading page decrypt_pattern
+I:Loading page decrypt_redirect
+I:Loading page trydecrypt
+I:Loading page reapply_settings
+I:Loading page decrypt_users
+I:Loading page decrypt_users2
+I:Including file: /twres/pages/files.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/files.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page filemanagerlist
+I:Loading page file_quick_actions
+I:Loading page file_quick_actions_dark
+I:Loading page select_path
+I:Loading page select_path_dark
+I:Loading page files_mkdir
+I:Loading page fm_multiselection
+I:Loading page fm_ms_actions
+I:Loading page file_search
+I:Loading page file_dark_search
+I:Loading page files_redirect
+I:Loading page files_bookmarks_prepare
+I:Loading page files_bookmarks
+I:Loading page filemanageroptions
+I:Loading page openas
+I:Loading page fm_file_checksum
+I:Loading page fm_file_checksum_calc
+I:Loading page fm_file_info
+I:Loading page choosedestinationfolder
+I:Loading page filemanagerrenamefile
+I:Loading page filemanagerrenamefolder
+I:Loading page filemanagerchmod
+I:Loading page filemanagerchmod_key
+I:Loading page filemanagerconfirm
+I:Loading page archive_confirm
+I:Loading page archive_cmd
+I:Loading page filemanageraction
+I:Loading page filemanagercomplete
+I:Loading page cat_file
+I:Including file: /twres/pages/magisk.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/magisk.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page magisk_mount
+I:Loading page magisk
+I:Loading page magisk_actions
+I:Loading page magisk_delete
+I:Including file: /twres/pages/advanced.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/advanced.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page advanced
+I:Loading page mod_survival
+I:Loading page mod_magisk
+I:Loading page mod_unmagisk
+I:Loading page mod_reset
+I:Loading page mod_pass
+I:Loading page fox_modules
+I:Loading page partsdcard
+I:Loading page htcdumlock
+I:Loading page terminal
+I:Loading page sideload
+I:Loading page fixcontexts
+I:Loading page apps_load
+I:Loading page apps_list
+I:Unable to open '/tmp/listapps/list'
+I:Unable to open '/tmp/listapps/list'
+I:Including file: /twres/pages/reboot.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/reboot.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page reboot
+I:Loading page set_slot
+I:Including file: /twres/pages/settings.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/settings.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page settings
+I:Loading page ext_context
+I:Loading page ext_general
+I:Loading page pass_select
+I:Loading page ext_screen
+I:Loading page ext_vibrate
+I:Loading page ext_backup
+I:Loading page ext_time
+I:Loading page ext_time_offset
+I:Loading page check_zone
+I:Loading page ext_time_lang
+I:Loading page ext_time_lang_busy
+I:Loading page about
+I:Loading page about_credits
+I:Parsing file: /twres/credits.txt
+I:Parsing file: /twres/translators.txt
+I:Parsing file: /twres/changelog.txt
+I:Loading page ext_gov
+I:Loading page ext_backup_quick
+I:Including file: /twres/pages/universal.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/universal.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page filecheck
+I:Loading page rebootcheck
+I:Loading page rebootcheckoverlay
+I:Loading page no_os_warning
+I:Loading page clear_vars
+I:Loading page confirm_action
+I:Loading page action_page
+I:Loading page ota_simple
+I:Loading page singleaction_page
+I:Loading page action_complete
+I:Including file: /twres/pages/anywhere.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/anywhere.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page lock
+I:Loading page console
+I:Including file: /twres/pages/dialogs.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/dialogs.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page menu
+I:Loading page menu_sort
+I:Loading page fm_sort
+I:Loading page dialog_magisk_not_found
+I:Loading page dialog_reset_average
+I:Loading page dialog_lost_info
+I:Loading page dialog_app
+I:Loading page dialog_error_partition
+I:Loading page pass_error
+I:Including file: /twres/pages/customization.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/customization.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page ext_custom_reset
+I:Loading page ext_custom_gest
+I:Loading page ext_custom
+I:Loading page ext_custom_status
+I:Loading page ext_custom_key
+I:Loading page ext_custom_lock
+I:Loading page ext_custom_nav
+I:Loading page ext_custom_other
+I:Loading page ext_custom_nav_error
+I:Loading page ext_custom_nav_no_switch
+I:Loading page ext_custom_fonts_check
+I:Loading page ext_custom_fonts
+I:Loading page ext_custom_fonts_sec
+I:Loading page ext_custom_fonts_size
+I:Loading page ext_custom_fonts_cn
+I:Loading page ext_custom_theme
+I:Loading page ext_custom_splash
+I:Loading page ext_custom_splash_color
+I:Loading page ext_custom_splash_logo
+I:Loading page ext_custom_splash_select
+I:Loading page apply_changes
+I:Loading page apply_splash
+I:Including file: /twres/pages/fox.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/fox.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page fox_ota
+I:Loading page fox_ota_lite
+I:Loading page fox_lab
+I:Loading page debug_pages
+I:Loading page debug
+I:Loading page debug_plus
+I:Loading page scaling
+I:Including file: /sbin/maintainer.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/sbin/maintainer.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/dummy.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page maintainer
+I:Set overlay: ''
+I:Set page: 'clear_vars'
+I:DEBUG - found white led on /sys/class/leds/white/ pathI:Set page: 'navbar'
+I:Set page: 'filemanagerlist'
+I:Switching packages (OrangeFox)
+Startup Commands: 
+ro.boottime.adbd=3353118926
+ro.boottime.init=2453
+ro.boottime.init.selinux=11
+ro.boottime.init.cold_boot_wait=836
+ro.boottime.ueventd=2483816599
+ro.boottime.recovery=3338357205
+ro.boottime.sbinqseecomd=3353619342
+ro.boottime.keymaster-3-0=3373880803
+ro.boottime.gatekeeper-1-0=3374337990
+ro.boottime.servicemanager=3374869240
+ro.boottime.set_permissive=3337780539
+ro.boottime.hwservicemanager=3373398042
+ro.config.ringtone=omni_ringtone1.ogg,omni_ringtone1.ogg
+ro.config.alarm_alert=omni_alarm1.ogg
+ro.config.notification_sound=omni_notification1.ogg
+dalvik.vm.isa.arm.variant=cortex-a73
+dalvik.vm.isa.arm.features=default
+dalvik.vm.isa.arm64.variant=kryo
+dalvik.vm.isa.arm64.features=default
+dalvik.vm.lockprof.threshold=500
+dalvik.vm.stack-trace-dir=/data/anr
+dalvik.vm.image-dex2oat-filter=verify-at-runtime
+debug.atrace.tags.enableflags=0
+ro.adb.secure=0
+ro.art.hiddenapi.warning=1
+ro.com.google.clientidbase=android-google
+ro.com.android.wifi-watchlist=GoogleGuest
+ro.opa.eligible_device=true
+ro.url.legal=http://www.google.com/intl/%s/mobile/android/basic/phone-legal.html
+ro.boot.hwc=Global
+ro.boot.cpuid=0x748d63ec
+ro.boot.console=ttyMSM0
+ro.boot.hwlevel=0
+ro.boot.selinux=permissive
+ro.boot.baseband=sdm
+ro.boot.configfs=true
+ro.boot.fpsensor=gdx
+ro.boot.hardware=qcom
+ro.boot.hwdevice=whyred
+ro.boot.hwversion=1.20.0
+ro.boot.keymaster=1
+ro.boot.bootdevice=c0c4000.sdhci
+ro.boot.secureboot=1
+ro.boot.veritymode=enforcing
+ro.boot.usbcontroller=a800000.dwc3
+ro.boot.verifiedbootstate=green
+ro.omni.device=whyred
+ro.omni.version=16.1.0-20230411-whyred-HOMEMADE
+ro.omni.version.security_patch=
+ro.twrp.sar=false
+ro.vndk.lite=true
+ro.vndk.version=28
+ro.wifi.channels=
+ro.allow.mock.location=1
+ro.build.id=PQ2A.190405.003
+ro.build.date=Tue Apr 11 09:55:34 IST 2023
+ro.build.date.utc=1510672800
+ro.build.date.utc_fox=1681187256
+ro.build.host=cirrus-ci-task-6469403861057536
+ro.build.tags=test-keys
+ro.build.type=eng
+ro.build.user=
+ro.build.flavor=omni_whyred-eng
+ro.build.fox_id=377de214-6e07-4d86-824e-dea9f1c9450f
+ro.build.display.id=omni_whyred-eng 16.1.0 PQ2A.190405.003 eng..20230411.095552 test-keys
+ro.build.product=whyred
+ro.build.selinux=1
+ro.build.version.sdk=28
+ro.build.version.base_os=
+ro.build.version.release=16.1.0
+ro.build.version.codename=REL
+ro.build.version.incremental=b03b2f2bb8
+ro.build.version.preview_sdk=0
+ro.build.version.all_codenames=REL
+ro.build.version.security_patch=2019-04-05
+ro.build.version.min_supported_target_sdk=17
+ro.build.description=omni_whyred-eng 16.1.0 PQ2A.190405.003 eng..20230411.095552 test-keys
+ro.build.characteristics=default
+ro.bionic.ld.warning=1
+ro.kernel.android.checkjni=1
+ro.secure=0
+ro.treble.enabled=true
+ro.product.cpu.abi=arm64-v8a
+ro.product.cpu.abilist=armeabi-v7a,armeabi
+ro.product.cpu.abilist32=armeabi-v7a,armeabi
+ro.product.cpu.abilist64=
+ro.product.name=omni_whyred
+ro.product.brand=Xiaomi
+ro.product.model=Xiaomi Redmi Note 5 Pro
+ro.product.device=whyred
+ro.product.mod_device=whyred_global
+ro.product.manufacturer=Xiaomi
+ro.baseband=sdm
+ro.bootmode=unknown
+ro.hardware=qcom
+ro.revision=0
+ro.services.whitelist.packagelist=com.google.android.gms
+ro.bootimage.build.date=Tue Apr 11 09:55:34 IST 2023
+ro.bootimage.build.date.utc=1681187256
+ro.bootimage.build.date.utc_fox=1681187256
+ro.bootimage.build.fingerprint=Xiaomi/omni_whyred/whyred:16.1.0/PQ2A.190405.003/04110955:eng/test-keys
+ro.orangefox.sar=0
+ro.orangefox.boot=1
+ro.orangefox.boot.header.version=0
+ro.orangefox.type=Stable
+ro.orangefox.build=orangefox
+ro.orangefox.kernel=4.4.302-Reza-Recovery
+ro.orangefox.variant=default
+ro.orangefox.version=R11.1
+ro.bootloader=unknown
+ro.debuggable=1
+ro.modversion=OmniROM-16.1.0-20230411-whyred-HOMEMADE
+ro.setupwizard.enterprise_mode=1
+ro.property_service.version=2
+ro.control_privapp_permissions=enforce
+ro.actionable_compatible_property.enabled=false
+fbe.data.wrappedkey=true
+init.svc.adbd=running
+init.svc.ueventd=running
+init.svc.recovery=running
+init.svc.sbinqseecomd=running
+init.svc.keymaster-3-0=restarting
+init.svc.gatekeeper-1-0=restarting
+init.svc.servicemanager=running
+init.svc.set_permissive=stopped
+init.svc.hwservicemanager=running
+crypto.ready=1
+recovery.perf.mode=0
+orangefox.rom.sdk=29
+orangefox.miui.rom=0
+orangefox.super.partition=false
+orangefox.system.mount_point=/system
+orangefox.system.block_device=/dev/block/mmcblk0p61
+orangefox.vendor.mount_point=/vendor
+orangefox.vendor.block_device=/dev/block/mmcblk0p62
+orangefox.postinit.status=1
+orangefox.realtreble.rom=0
+orangefox.crash_counter=0
+orangefox.action_complete=0
+sys.usb.ffs.ready=1
+ro.build.fingerprint=Xiaomi/qassa_whyred/whyred:10/QQ3A.200805.001/b03b2f2bb8:userdebug/release-keys
+hwservicemanager.ready=true
+ro.persistent_properties.ready=true
+ro.boot.serialno=26bea10
+ro.serialno=26bea10
+service.adb.root=1
+net.bt.name=Android
+net.tethering.noprovisioning=true
+sys.usb.rmnet.func.name=rmnet_bam
+sys.usb.rndis.func.name=rndis_bam
+sys.usb.state=adb
+sys.usb.controller=a800000.dwc3
+sys.listeners.registered=true
+persist.sys.usb.config=adb
+persist.sys.dalvik.vm.lib.2=libart.so
+persist.sys.disable_rescue=true
+sys.usb.config=adb
+ro.hardware.keystore=sdm660
+ro.crypto.type=file
+ro.crypto.state=encrypted
+
+SELinux contexts loaded from /file_contexts
+Full SELinux support is present.
+tw_get_context got selinux context: u:object_r:media_rw_data_file:s0
+I:Got default contexts and file mode for storage files.
+I:Unable to find source file /cache/recovery/log.gz
+I:Attempt to load settings from settings file...
+I:InfoManager loading from '/data/media/0/Fox/.foxs'.
+I:Backup folder set to '/data/media/0/Fox/BACKUPS/26bea10'
+I:Copied file /etc/recovery.fstab to /cache/recovery/recovery.fstab
+I:Version number saved to '/cache/recovery/.version'
+I:Unable to mount '/sdcard1'
+I:Actual block device: '', current file system: 'vfat'
+I:Unable to mount '/usb_otg'
+I:Actual block device: '', current file system: 'vfat'
+I:TWFunc::Set_Brightness: Setting brightness control to 4095
+I:PassBak: Loaded backup
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/en.xml' directly
+parsing languageFile
+parsing languageFile done
+I:Translating partition display names
+I:Backup folder set to '/data/media/0/Fox/BACKUPS/26bea10'
+--------------------------
+Welcome to OrangeFox Recovery!
+[Platform]  : whyred
+[Release]   : R11.1
+[Variant]   : default
+[Codebase]  : 28, 2022-12-05 (bc51c51d)
+[Build date]: Tue Apr 11 04:27:36 2023
+[Build type]: Stable
+[Support]   : https://t.me/OrangeFoxChat
+
+OrangeFox websites:
+[Downloads] : https://orangefox.download/
+[Guides/FAQ]: https://wiki.orangefox.tech/guides/
+[App]       : https://app.orangefox.tech/
+--------------------------
+I:DEBUG: OrangeFox: the startup script has been executed.
+* Display:   tianma td4310 fhd video mode dsi panel
+* Device:    whyred
+* Custom ROM (SDK:29, Android 10)
+* QQ3A.200805.001
+* (b03b2f2bb8)
+* Fingerprint: Xiaomi/qassa_whyred/whyred:10/QQ3A.200805.001/b03b2f2bb8:userdebug/release-keys
+--------------------------
+I:ROM Status: QQ3A.200805.001
+I:Themes version: 1.1
+I:Starting MTP
+I:Cannot find file /sys/class/android_usb/android0/idVendor
+I:Cannot find file /sys/class/android_usb/android0/idProduct
+I:sending message to add 65537 '/data/media/0' 'Internal Storage'
+I:Message sent, add storage ID: 65537 '/data/media/0'
+MTP is enabled
+I:[MTP] Starting MTP
+I:Check_Lifetime_Writes result: '1733985'
+I:PassBak: Loaded backup
+I:Switching packages (OrangeFox)
+I:Starting Adb Backup FIFO
+I:Set page: 'main'
+I:Set overlay: ''
+I:Set page: 'clear_vars'
+I:DEBUG - found white led on /sys/class/leds/white/ pathI:Set page: 'navbar'
+I:Set page: 'filemanagerlist'
+I:[MTP] created new mtpserver object
+E:[MTP] Failed to start usb driver!I:[MTP] mtppipe add storage 65537 '/data/media/0'
+I:Set page: 'files_redirect'
+I:Set page: 'flash_confirm'
+I:Cannot find file /sys/class/timed_output/vibrator/enable
+I:Cannot find file /sys/class/timed_output/vibrator/enable
+I:Set page: 'flash_zip'
+I:operation_start: 'Flashing'
+Installing ZIP file '/sdcard/whyred-ksun-v3.2.2-10-legacy-20260524-2100-6e24ac0b.zip'
+I:Update binary zip
+Verifying package compatibility...
+Package doesn't contain compatibility.zip entry
+Detecting Current Package
+I:Zip does not contain SELinux file_contexts file in its root.
+I:Legacy property environment not used in updater.
+ 
+/tmp/updater: line 280: cd: /tmp/anykernel/../: No such file or directory
+Archive:  /sdcard/whyred-ksun-v3.2.2-10-legacy-20260524-2100-6e24ac0b.zip
+  inflating: tools/fec
+  inflating: Image.gz-dtb
+  inflating: tools/httools_static
+  inflating: sdm636-mtp_whyred-qti.dtb
+  inflating: META-INF/com/google/android/updater-script
+  inflating: META-INF/com/google/android/update-binary
+  inflating: LICENSE
+  inflating: modules/system/lib/modules/placeholder
+  inflating: ramdisk/placeholder
+  inflating: tools/snapshotupdater_static
+  inflating: tools/magiskpolicy
+  inflating: tools/ak3-core.sh
+  inflating: anykernel.sh
+  inflating: tools/magiskboot
+  inflating: tools/busybox
+  inflating: tools/lptools_static
+  inflating: patch/placeholder
+Whyred KSUN-Next + SUSFS Kernel
+ 
+AnyKernel3 by osm0sis @ xda-developers
+ 
+AK_BASE_VERSION=20260225
+ 
+Unmounting...
+Mounting...
+/persist (fstab)
+/system ($ANDROID_ROOT)
+/system_root (moved)
+/vendor (fstab)
+/tmp/updater: line 60: warning: command substitution: ignored null byte in input
+/apex/com.android.conscrypt (bind)
+/apex/com.android.media (bind)
+/apex/com.android.media.swcodec (bind)
+/apex/com.android.resolv (bind)
+/apex/com.android.runtime (bind)
+/apex/com.android.tzdata (bind)
+/system (bind)
+ 
+Checking device...
+whyred
+ 
+Installing...
+/dev/block/bootdevice/by-name/boot
+64+0 records in
+64+0 records out
+67108864 bytes (64.0MB) copied, 0.341299 seconds, 187.5MB/s
+Parsing boot image: [/tmp/anykernel/boot.img]
+HEADER_VER      [0]
+KERNEL_SZ       [12072399]
+RAMDISK_SZ      [775567]
+SECOND_SZ       [0]
+EXTRA_SZ        [0]
+OS_VERSION      [10.0.0]
+OS_PATCH_LEVEL  [2023-02]
+PAGESIZE        [4096]
+NAME            []
+CMDLINE         [console=ttyMSM0,115200,n8 androidboot.console=ttyMSM0 earlycon=msm_serial_dm,0xc170000 androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x37 ehci-hcd.park=3 lpm_levels.sleep_disabled=1 sched_enable_hmp=1 sched_enable_power_aware=1 service_locator.enable=1 swiotlb=1 androidboot.configfs=true androidboot.usbcontroller=a800000.dwc3 loop.max_part=7 usbcore.autosuspend=7 buildvariant=userdebug]
+CHECKSUM        [02d0d254686ab04200ad5a9b01e9170ef01e9371000000000000000000000000]
+KERNEL_DTB_SZ   [462349]
+KERNEL_FMT      [gzip]
+RAMDISK_FMT     [gzip]
+cp: '/tmp/anykernel/split_img/ramdisk.cpio' and 'ramdisk.cpio' are the same file
+Loading cpio: [ramdisk.cpio]
+Parsing boot image: [/tmp/anykernel/boot.img]
+HEADER_VER      [0]
+KERNEL_SZ       [12072399]
+RAMDISK_SZ      [775567]
+SECOND_SZ       [0]
+EXTRA_SZ        [0]
+OS_VERSION      [10.0.0]
+OS_PATCH_LEVEL  [2023-02]
+PAGESIZE        [4096]
+NAME            []
+CMDLINE         [console=ttyMSM0,115200,n8 androidboot.console=ttyMSM0 earlycon=msm_serial_dm,0xc170000 androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x37 ehci-hcd.park=3 lpm_levels.sleep_disabled=1 sched_enable_hmp=1 sched_enable_power_aware=1 service_locator.enable=1 swiotlb=1 androidboot.configfs=true androidboot.usbcontroller=a800000.dwc3 loop.max_part=7 usbcore.autosuspend=7 buildvariant=userdebug]
+CHECKSUM        [02d0d254686ab04200ad5a9b01e9170ef01e9371000000000000000000000000]
+KERNEL_DTB_SZ   [462349]
+KERNEL_FMT      [gzip]
+RAMDISK_FMT     [gzip]
+Repack to boot image: [/tmp/anykernel/boot-new.img]
+HEADER_VER      [0]
+KERNEL_SZ       [12459995]
+RAMDISK_SZ      [775567]
+SECOND_SZ       [0]
+EXTRA_SZ        [0]
+OS_VERSION      [10.0.0]
+OS_PATCH_LEVEL  [2023-02]
+PAGESIZE        [4096]
+NAME            []
+CMDLINE         [console=ttyMSM0,115200,n8 androidboot.console=ttyMSM0 earlycon=msm_serial_dm,0xc170000 androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x37 ehci-hcd.park=3 lpm_levels.sleep_disabled=1 sched_enable_hmp=1 sched_enable_power_aware=1 service_locator.enable=1 swiotlb=1 androidboot.configfs=true androidboot.usbcontroller=a800000.dwc3 loop.max_part=7 usbcore.autosuspend=7 buildvariant=userdebug]
+CHECKSUM        [f03418f53a457e0ff1a2a6cdc86b7a431257d3cb000000000000000000000000]
+64+0 records in
+64+0 records out
+67108864 bytes (64.0MB) copied, 0.590116 seconds, 108.5MB/s
+ 
+Unmounting...
+Unmounting apex...
+ 
+Done!
+I:Process ended with no errors.
+I:Install took 6 second(s).
+I:OrangeFox: installed standard zip: /sdcard/whyred-ksun-v3.2.2-10-legacy-20260524-2100-6e24ac0b.zip
+I:flash_zip: installer code = 0
+I:Cannot find file /sys/class/timed_output/vibrator/enable
+Updating partition details...
+I:Data backup size is 1133MB, free: 17786MB.
+I:Can't probe device /data/media/0
+Failed to mount '/cust' (Invalid argument)
+I:Actual block device: '/dev/block/mmcblk0p63', current file system: 'ext4'
+I:Unable to mount '/sdcard1'
+I:Actual block device: '', current file system: 'vfat'
+I:Unable to mount '/usb_otg'
+I:Actual block device: '', current file system: 'vfat'
+...done
+I:Set page: 'flash_done'
+I:operation_end - status=0
+I:Cannot find file /sys/class/timed_output/vibrator/enable
+I:DEBUG - found white led on /sys/class/leds/white/ pathI:Set page: 'confirm_action'
+I:Cannot find file /sys/class/timed_output/vibrator/enable
+I:Set page: 'action_page'
+I:operation_start: 'Format'
+Formatting Cache using mke2fs...
+I:mke2fs command: mke2fs -t ext4 -b 4096 /dev/block/mmcblk0p60 65536
+mke2fs 1.43.3 (04-Sep-2016)
+Discarding device blocks:  4096/65536           done                            
+Creating filesystem with 65536 4k blocks and 65536 inodes
+Filesystem UUID: b9207278-34e7-448a-b9c9-7217125712fc
+Superblock backups stored on blocks: 
+	32768
+
+Allocating group tables: 0/2   done                            
+Writing inode tables: 0/2   done                            
+Creating journal (4096 blocks): done
+Writing superblocks and filesystem accounting information: 0/2   done
+
+I:Process ended with no errors.
+I:e2fsdroid command: e2fsdroid -e -S /file_contexts -a /cache /dev/block/mmcblk0p60
+SELinux: Loaded file_contexts
+Created filesystem with 11/65536 inodes and 6190/65536 blocks
+I:Process ended with no errors.
+Done
+I:Recreating /cache/recovery/ folder.
+I:Copied file /etc/recovery.fstab to /cache/recovery/recovery.fstab
+I:Version number saved to '/cache/recovery/.version'
+Updating partition details...
+I:Data backup size is 1133MB, free: 17786MB.
+I:Can't probe device /data/media/0
+Failed to mount '/cust' (Invalid argument)
+I:Actual block device: '/dev/block/mmcblk0p63', current file system: 'ext4'
+I:Unable to mount '/sdcard1'
+I:Actual block device: '', current file system: 'vfat'
+I:Unable to mount '/usb_otg'
+I:Actual block device: '', current file system: 'vfat'
+...done
+I:Set overlay: ''
+I:Set page: 'action_complete'
+I:operation_end - status=0
+I:operation_start: 'Format'
+Wiping Cache & Dalvik...
+Cleaned: /data/dalvik-cache...
+Cache & Dalvik Wipe completed
+Updating partition details...
+I:Data backup size is 1118MB, free: 17801MB.
+I:Can't probe device /data/media/0
+Failed to mount '/cust' (Invalid argument)
+I:Actual block device: '/dev/block/mmcblk0p63', current file system: 'ext4'
+I:Unable to mount '/sdcard1'
+I:Actual block device: '', current file system: 'vfat'
+I:Unable to mount '/usb_otg'
+I:Actual block device: '', current file system: 'vfat'
+...done
+I:operation_end - status=0
+I:Cannot find file /sys/class/timed_output/vibrator/enable
+I:Set page: 'rebootcheck'
+I:OrangeFox: Disabling stock recovery [search-dir=/system]...
+I:OrangeFox: checking /system ...
+I:OrangeFox: checking /system ...
+I:OrangeFox: checking /vendor ...
+I:Unable to find source file /cache/recovery/log.gz
+Starting OrangeFox Recovery R11.1 [default, core: R11.1] (built on Tue Apr 11 04:27:36 2023 for whyred [dev_ver: 2022-12-05 (bc51c51d)]; pid 542)
+RECOVERY_SDCARD_ON_DATA := true
+TW_NO_USB_STORAGE := true
+TW_INCLUDE_CRYPTO := true
+I:TW_BRIGHTNESS_PATH := /sys/class/leds/lcd-backlight/brightness
+I:Found brightness file at '/sys/class/leds/lcd-backlight/brightness'
+I:TWFunc::Set_Brightness: Setting brightness control to 4095
+I:LANG: en
+Starting the UI...
+setting DRM_FORMAT_RGBX8888 and GGL_PIXEL_FORMAT_RGBX_8888
+cannot find/open a drm device: No such file or directory
+fb0 reports (possibly inaccurate):
+  vi.bits_per_pixel = 32
+  vi.red.offset   =   0   .length =   8
+  vi.green.offset =   8   .length =   8
+  vi.blue.offset  =  16   .length =   8
+setting GGL_PIXEL_FORMAT_RGBA_8888
+double buffered
+framebuffer: 0 (1080 x 2160)
+Using fbdev graphics.
+I:TWFunc::Set_Brightness: Setting brightness control to 4095
+TW_SCREEN_BLANK_ON_BOOT := true
+I:TWFunc::Set_Brightness: Setting brightness control to 0
+I:TWFunc::Set_Brightness: Setting brightness control to 4095
+I:Loading package: splash (/twres/splash.xml)
+I:Load XML directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/splash.xml' directly
+I:Checking resolution...
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page splash
+I:Switching packages (splash)
+=> Linking mtab
+=> Processing /etc/recovery.fstab for SAR-detection
+I:Reading /etc/recovery.fstab
+I:Done processing fstab files
+I:FOX-SAR-DETECT: Non-SAR System detected
+=> Processing /etc/recovery.fstab
+I:Reading /etc/recovery.fstab
+I:Processing '/boot'
+I:Processing '/recovery'
+I:Processing '/cache'
+I:Processing '/data'
+I:Processing '/storage'
+I:Processing '/system'
+I:Processing '/system_image'
+I:Processing '/vendor'
+I:Processing '/vendor_image'
+I:Processing '/persist'
+I:Created '/persist' folder.
+I:Attempt to load settings from /persist settings file...
+I:InfoManager loading from '/persist/.foxs'.
+I:TWFunc::Set_Brightness: Setting brightness control to 4095
+I:PassBak: Found backup
+I:TWFunc::Fixup_Time: Pre-fix date and time: 1970-01-01--02-53-11
+I:TWFunc::Fixup_Time: Setting time offset from file /sys/class/rtc/rtc0/since_epoch
+I:Cannot find file /persist/.fox_epoch_drift.cfg
+I:TWFunc::Fixup_Time: Wrong date and time epoch in /sys/class/rtc/rtc0/since_epoch
+I:TWFunc::Fixup_Time: will attempt to use the ats files now.
+I:TWFunc::Fixup_Time: Setting time offset from file /persist/time/ats_2, offset 1779649864769
+I:TWFunc::Fixup_Time: Date and time corrected: 2026-05-24--22-04-15
+I:Processing '/persist_image'
+I:Processing '/splash'
+I:Processing '/firmware'
+I:Processing '/firmware_image'
+I:Processing '/cust'
+I:Created '/cust' folder.
+I:Processing '/cust_image'
+I:Processing '/misc'
+I:Processing '/modem'
+I:Processing '/bluetooth'
+I:Processing '/dsp'
+I:Processing '/efs1'
+I:Processing '/efs2'
+I:Processing '/efsc'
+I:Processing '/efsg'
+I:Processing '/sdcard1'
+I:Created '/sdcard1' folder.
+I:Processing '/usb_otg'
+I:Created '/usb_otg' folder.
+I:Processing '/aboot'
+I:Processing '/cmnlib'
+I:Processing '/tz'
+I:Processing '/rpm'
+I:Processing '/keymaster'
+I:Processing '/devcfg'
+I:Done processing fstab files
+I:Setting up '/data' as data/media emulated storage.
+I:Process ended with no errors.
+I:Process ended with no errors.
+I:Trying wrapped key.
+I:
+Device not encrypted/Unable to decrypt FBE device
+
+I:Setting up '/data' as data/media emulated storage.
+I:Process ended with no errors.
+I:Backup folder set to '/data/media/0/Fox/BACKUPS/26bea10'
+I:Settings storage is '/data/media/0'
+I:Decrypt adopted storage starting
+I:PageManager::LoadFileToBuffer loading filename: '/data/system/storage.xml' directly
+I:No /data/system/storage.xml for adopted storage
+Updating partition details...
+I:Data backup size is 1133MB, free: 17786MB.
+I:Can't probe device /data/media/0
+Failed to mount '/cust' (Invalid argument)
+I:Actual block device: '/dev/block/mmcblk0p63', current file system: 'ext4'
+I:Unable to mount '/sdcard1'
+I:Actual block device: '', current file system: 'vfat'
+I:Unable to mount '/usb_otg'
+I:Actual block device: '', current file system: 'vfat'
+...done
+I:Unmounting main partitions...
+
+
+Partition Logs:
+/boot | /dev/block/mmcblk0p58 | Size: 64MB
+   Flags: Can_Be_Backed_Up IsPresent Can_Flash_Img 
+   Primary_Block_Device: /dev/block/mmcblk0p58
+   Display_Name: Boot
+   Storage_Name: boot
+   Backup_Path: /boot
+   Backup_Name: boot
+   Backup_Display_Name: Boot
+   Storage_Path: /boot
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/recovery | /dev/block/mmcblk0p59 | Size: 64MB
+   Flags: Can_Be_Backed_Up IsPresent Can_Flash_Img 
+   Primary_Block_Device: /dev/block/mmcblk0p59
+   Display_Name: Recovery
+   Storage_Name: recovery
+   Backup_Path: /recovery
+   Backup_Name: recovery
+   Backup_Display_Name: Recovery
+   Storage_Path: /recovery
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/cache | /dev/block/mmcblk0p60 | Size: 231MB Used: 0MB Free: 231MB Backup Size: 0MB
+   Flags: Can_Be_Mounted Can_Be_Wiped Can_Be_Backed_Up Wipe_During_Factory_Reset Wipe_Available_in_GUI IsPresent 
+   Primary_Block_Device: /dev/block/mmcblk0p60
+   Display_Name: Cache
+   Storage_Name: Cache
+   Backup_Path: /cache
+   Backup_Name: cache
+   Backup_Display_Name: Cache
+   Storage_Path: /cache
+   Current_File_System: ext4
+   Fstab_File_System: ext4
+   Backup_Method: files
+
+/data | /dev/block/mmcblk0p64 | Size: 22294MB Used: 1133MB Free: 17786MB Backup Size: 1133MB
+   Flags: Can_Be_Mounted Can_Be_Wiped Can_Be_Backed_Up Wipe_During_Factory_Reset Wipe_Available_in_GUI IsPresent Can_Be_Encrypted Has_Data_Media Can_Encrypt_Backup Use_Userdata_Encryption Is_Storage Is_Settings_Storage 
+   Symlink_Path: /data/media/0
+   Symlink_Mount_Point: /sdcard
+   Primary_Block_Device: /dev/block/mmcblk0p64
+   Length: -16384
+   Display_Name: Data
+   Storage_Name: Internal Storage
+   Backup_Path: /data
+   Backup_Name: data
+   Backup_Display_Name: Data
+   Storage_Path: /data/media/0
+   Current_File_System: ext4
+   Fstab_File_System: ext4
+   Backup_Method: files
+   MTP_Storage_ID: 65537
+
+/storage | /data/media/0 | Size: 22294MB Used: 4508MB Free: 17786MB Backup Size: 4508MB
+   Flags: Can_Be_Mounted Can_Be_Wiped Use_Rm_Rf Can_Be_Backed_Up Removable IsPresent 
+   Primary_Block_Device: /data/media/0
+   Display_Name: Internal Storage
+   Storage_Name: Internal Storage
+   Backup_Path: /storage
+   Backup_Name: storage
+   Backup_Display_Name: Internal Storage
+   Storage_Path: /storage
+   Current_File_System: ext4
+   Fstab_File_System: ext4
+   Backup_Method: files
+   Mount_Flags: 4096, Mount_Options: 
+
+/system | /dev/block/mmcblk0p61 | Size: 2959MB Used: 1578MB Free: 1381MB Backup Size: 1578MB
+   Flags: Can_Be_Mounted Can_Be_Wiped Can_Be_Backed_Up Wipe_Available_in_GUI IsPresent Mount_Read_Only 
+   Primary_Block_Device: /dev/block/mmcblk0p61
+   Display_Name: System
+   Storage_Name: System
+   Backup_Path: /system
+   Backup_Name: system
+   Backup_Display_Name: System
+   Storage_Path: /system
+   Current_File_System: ext4
+   Fstab_File_System: ext4
+   Backup_Method: files
+
+/system_image | /dev/block/mmcblk0p61 | Size: 3072MB
+   Flags: Can_Be_Backed_Up IsPresent Can_Flash_Img 
+   Primary_Block_Device: /dev/block/mmcblk0p61
+   Display_Name: System Image
+   Storage_Name: System Image
+   Backup_Path: /system_image
+   Backup_Name: system_image
+   Backup_Display_Name: System Image
+   Storage_Path: /system_image
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/vendor | /dev/block/mmcblk0p62 | Size: 1951MB Used: 456MB Free: 1494MB Backup Size: 456MB
+   Flags: Can_Be_Mounted Can_Be_Wiped Can_Be_Backed_Up Wipe_Available_in_GUI IsPresent Mount_Read_Only 
+   Primary_Block_Device: /dev/block/mmcblk0p62
+   Display_Name: Vendor
+   Storage_Name: Vendor
+   Backup_Path: /vendor
+   Backup_Name: vendor
+   Backup_Display_Name: Vendor
+   Storage_Path: /vendor
+   Current_File_System: ext4
+   Fstab_File_System: ext4
+   Backup_Method: files
+
+/vendor_image | /dev/block/mmcblk0p62 | Size: 2048MB
+   Flags: Can_Be_Backed_Up IsPresent Can_Flash_Img 
+   Primary_Block_Device: /dev/block/mmcblk0p62
+   Display_Name: Vendor Image
+   Storage_Name: Vendor Image
+   Backup_Path: /vendor_image
+   Backup_Name: vendor_image
+   Backup_Display_Name: Vendor Image
+   Storage_Path: /vendor_image
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/persist | /dev/block/mmcblk0p53 | Size: 26MB Used: 0MB Free: 26MB Backup Size: 0MB
+   Flags: Can_Be_Mounted Can_Be_Wiped IsPresent 
+   Primary_Block_Device: /dev/block/mmcblk0p53
+   Display_Name: Persist
+   Storage_Name: Persist
+   Backup_Path: /persist
+   Backup_Name: persist
+   Backup_Display_Name: Persist
+   Storage_Path: /persist
+   Current_File_System: ext4
+   Fstab_File_System: ext4
+   Backup_Method: files
+
+/persist_image | /dev/block/mmcblk0p53 | Size: 32MB
+   Flags: Can_Be_Backed_Up IsPresent Can_Flash_Img 
+   Primary_Block_Device: /dev/block/mmcblk0p53
+   Display_Name: Persist
+   Storage_Name: Persist
+   Backup_Path: /persist_image
+   Backup_Name: persist_image
+   Backup_Display_Name: Persist
+   Storage_Path: /persist_image
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/splash | /dev/block/mmcblk0p52 | Size: 64MB
+   Flags: Can_Be_Backed_Up IsPresent Can_Flash_Img 
+   Primary_Block_Device: /dev/block/mmcblk0p52
+   Display_Name: Splash Image
+   Storage_Name: Splash Image
+   Backup_Path: /splash
+   Backup_Name: splash
+   Backup_Display_Name: Splash Image
+   Storage_Path: /splash
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/firmware | /dev/block/mmcblk0p56 | Size: 191MB Used: 105MB Free: 86MB Backup Size: 105MB
+   Flags: Can_Be_Mounted Can_Be_Wiped IsPresent Mount_To_Decrypt Mount_Read_Only 
+   Primary_Block_Device: /dev/block/mmcblk0p56
+   Display_Name: Firmware
+   Storage_Name: Firmware
+   Backup_Path: /firmware
+   Backup_Name: firmware
+   Backup_Display_Name: Firmware
+   Storage_Path: /firmware
+   Current_File_System: vfat
+   Fstab_File_System: vfat
+   Backup_Method: files
+
+/firmware_image | /dev/block/mmcblk0p56 | Size: 192MB
+   Flags: Can_Be_Backed_Up IsPresent Can_Flash_Img 
+   Primary_Block_Device: /dev/block/mmcblk0p56
+   Display_Name: Firmware
+   Storage_Name: Firmware
+   Backup_Path: /firmware_image
+   Backup_Name: firmware_image
+   Backup_Display_Name: Firmware
+   Storage_Path: /firmware_image
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/cust | /dev/block/mmcblk0p63 | Size: 0MB Used: 0MB Free: 0MB Backup Size: 0MB
+   Flags: Can_Be_Mounted Can_Be_Wiped IsPresent 
+   Primary_Block_Device: /dev/block/mmcblk0p63
+   Display_Name: Cust
+   Storage_Name: Cust
+   Backup_Path: /cust
+   Backup_Name: cust
+   Backup_Display_Name: Cust
+   Storage_Path: /cust
+   Current_File_System: ext4
+   Fstab_File_System: ext4
+   Backup_Method: files
+
+/cust_image | /dev/block/mmcblk0p63 | Size: 832MB
+   Flags: Can_Be_Backed_Up IsPresent Can_Flash_Img 
+   Primary_Block_Device: /dev/block/mmcblk0p63
+   Display_Name: Cust
+   Storage_Name: Cust
+   Backup_Path: /cust_image
+   Backup_Name: cust_image
+   Backup_Display_Name: Cust
+   Storage_Path: /cust_image
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/misc | /dev/block/mmcblk0p42 | Size: 4MB
+   Flags: IsPresent 
+   Primary_Block_Device: /dev/block/mmcblk0p42
+   Display_Name: misc
+   Storage_Name: misc
+   Backup_Path: /misc
+   Backup_Name: misc
+   Backup_Display_Name: misc
+   Storage_Path: /misc
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/modem | /dev/block/mmcblk0p56 | Size: 192MB
+   Flags: Can_Be_Backed_Up Has_SubPartition IsPresent 
+   Primary_Block_Device: /dev/block/mmcblk0p56
+   Display_Name: Modem
+   Storage_Name: Modem
+   Backup_Path: /modem
+   Backup_Name: modem
+   Backup_Display_Name: Modem
+   Storage_Path: /modem
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/bluetooth | /dev/block/mmcblk0p38 | Size: 1MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /modem
+   Primary_Block_Device: /dev/block/mmcblk0p38
+   Display_Name: Bluetooth
+   Storage_Name: Bluetooth
+   Backup_Path: /bluetooth
+   Backup_Name: bluetooth
+   Backup_Display_Name: Bluetooth
+   Storage_Path: /bluetooth
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/dsp | /dev/block/mmcblk0p48 | Size: 16MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /modem
+   Primary_Block_Device: /dev/block/mmcblk0p48
+   Display_Name: dsp
+   Storage_Name: dsp
+   Backup_Path: /dsp
+   Backup_Name: dsp
+   Backup_Display_Name: dsp
+   Storage_Path: /dsp
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/efs1 | /dev/block/mmcblk0p46 | Size: 8MB
+   Flags: Can_Be_Backed_Up Has_SubPartition IsPresent 
+   Primary_Block_Device: /dev/block/mmcblk0p46
+   Display_Name: EFS
+   Storage_Name: EFS
+   Backup_Path: /efs1
+   Backup_Name: efs1
+   Backup_Display_Name: EFS
+   Storage_Path: /efs1
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/efs2 | /dev/block/mmcblk0p47 | Size: 8MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /efs1
+   Primary_Block_Device: /dev/block/mmcblk0p47
+   Display_Name: efs2
+   Storage_Name: efs2
+   Backup_Path: /efs2
+   Backup_Name: efs2
+   Backup_Display_Name: efs2
+   Storage_Path: /efs2
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/efsc | /dev/block/mmcblk0p3 | Size: 0MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /efs1
+   Primary_Block_Device: /dev/block/mmcblk0p3
+   Display_Name: efsc
+   Storage_Name: efsc
+   Backup_Path: /efsc
+   Backup_Name: efsc
+   Backup_Display_Name: efsc
+   Storage_Path: /efsc
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/efsg | /dev/block/mmcblk0p45 | Size: 8MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /efs1
+   Primary_Block_Device: /dev/block/mmcblk0p45
+   Display_Name: efsg
+   Storage_Name: efsg
+   Backup_Path: /efsg
+   Backup_Name: efsg
+   Backup_Display_Name: efsg
+   Storage_Path: /efsg
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/sdcard1 |  | Size: 0MB Used: 0MB Free: 0MB Backup Size: 0MB
+   Flags: Can_Be_Mounted Can_Be_Wiped Wipe_Available_in_GUI Removable Is_Storage 
+   Primary_Block_Device: /dev/block/mmcblk1p1
+   Alternate_Block_Device: /dev/block/mmcblk1
+   Display_Name: MicroSD Card
+   Storage_Name: MicroSD Card
+   Backup_Path: /sdcard1
+   Backup_Name: sdcard1
+   Backup_Display_Name: MicroSD Card
+   Storage_Path: /sdcard1
+   Current_File_System: vfat
+   Fstab_File_System: vfat
+   Backup_Method: files
+   Mount_Flags: 0, Mount_Options: utf8
+   MTP_Storage_ID: 65538
+
+/usb_otg |  | Size: 0MB Used: 0MB Free: 0MB Backup Size: 0MB
+   Flags: Can_Be_Mounted Can_Be_Wiped Wipe_Available_in_GUI Removable Is_Storage 
+   Primary_Block_Device: /dev/block/sda1
+   Alternate_Block_Device: /dev/block/sda
+   Display_Name: USB-Storage
+   Storage_Name: USB-Storage
+   Backup_Path: /usb_otg
+   Backup_Name: usb_otg
+   Backup_Display_Name: USB-Storage
+   Storage_Path: /usb_otg
+   Current_File_System: vfat
+   Fstab_File_System: vfat
+   Backup_Method: files
+   Mount_Flags: 0, Mount_Options: utf8
+   MTP_Storage_ID: 65539
+
+/aboot |  | Size: 0MB
+   Flags: Can_Be_Backed_Up Has_SubPartition 
+   Primary_Block_Device: /dev/block/bootdevice/by-name/aboot
+   Display_Name: Bootloader
+   Storage_Name: Bootloader
+   Backup_Path: /aboot
+   Backup_Name: aboot
+   Backup_Display_Name: Bootloader
+   Storage_Path: /aboot
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/cmnlib | /dev/block/mmcblk0p21 | Size: 1MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /aboot
+   Primary_Block_Device: /dev/block/mmcblk0p21
+   Display_Name: cmnlib
+   Storage_Name: cmnlib
+   Backup_Path: /cmnlib
+   Backup_Name: cmnlib
+   Backup_Display_Name: cmnlib
+   Storage_Path: /cmnlib
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/tz | /dev/block/mmcblk0p32 | Size: 4MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /aboot
+   Primary_Block_Device: /dev/block/mmcblk0p32
+   Display_Name: tz
+   Storage_Name: tz
+   Backup_Path: /tz
+   Backup_Name: tz
+   Backup_Display_Name: tz
+   Storage_Path: /tz
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/rpm | /dev/block/mmcblk0p15 | Size: 0MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /aboot
+   Primary_Block_Device: /dev/block/mmcblk0p15
+   Display_Name: rpm
+   Storage_Name: rpm
+   Backup_Path: /rpm
+   Backup_Name: rpm
+   Backup_Display_Name: rpm
+   Storage_Path: /rpm
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/keymaster | /dev/block/mmcblk0p36 | Size: 1MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /aboot
+   Primary_Block_Device: /dev/block/mmcblk0p36
+   Display_Name: keymaster
+   Storage_Name: keymaster
+   Backup_Path: /keymaster
+   Backup_Name: keymaster
+   Backup_Display_Name: keymaster
+   Storage_Path: /keymaster
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+/devcfg | /dev/block/mmcblk0p31 | Size: 1MB
+   Flags: Can_Be_Backed_Up Is_SubPartition IsPresent 
+   SubPartition_Of: /aboot
+   Primary_Block_Device: /dev/block/mmcblk0p31
+   Display_Name: devcfg
+   Storage_Name: devcfg
+   Backup_Path: /devcfg
+   Backup_Name: devcfg
+   Backup_Display_Name: devcfg
+   Storage_Path: /devcfg
+   Current_File_System: emmc
+   Fstab_File_System: emmc
+   Backup_Method: dd
+
+I:DEBUG: OrangeFox: running the startup script...
+FOX_BUILD_DATE=Tue Apr 11 04:27:36 2023
+DEBUG: OrangeFox: FOX_DEVICE=whyred
+DEBUG: OrangeFox: FOX_KERNEL=4.4.302-Reza-Recovery
+DEBUG: OrangeFox: SYSTEM_ROOT=0
+DEBUG: OrangeFox: PROPER_SAR=0
+DEBUG: OrangeFox: FOX_SCRIPT_DATE=20211112
+
+DEBUG: OrangeFox: REALTREBLE=0
+DEBUG: OrangeFox: ANDROID_SDK=29
+DEBUG: OrangeFox: INCREMENTAL_VERSION=b03b2f2bb8
+DEBUG: OrangeFox: BUILD_FLAVOR=qassa_whyred-userdebug
+DEBUG: OrangeFox: ROM_FINGERPRINT=Xiaomi/qassa_whyred/whyred:10/QQ3A.200805.001/b03b2f2bb8:userdebug/release-keys
+DEBUG: OrangeFox: check for Treble.
+DEBUG: OrangeFox: detected a Non-Treble ROM.
+DEBUG: OrangeFox: check for MIUI.
+DEBUG: OrangeFox: detected a Custom ROM.
+I:Process ended with no errors.
+I:- Using the ROM's incremental version (b03b2f2bb8)
+I:Process ended with no errors.
+I:- Using the ROM's fingerprint (Xiaomi/qassa_whyred/whyred:10/QQ3A.200805.001/b03b2f2bb8:userdebug/release-keys)
+I:Process ended with no errors.
+I:Loading package: OrangeFox (/data/media/0/Fox/.bin./pa.zip)
+I:Loading zip theme
+I:Loading package: OrangeFox (/twres/ui.xml)
+I:Load XML directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/zn_TW.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/zh_CN.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/ua.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/tr.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/ru.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/ro.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/pt_PT.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/pl.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/it.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/id.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/hu.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/fr.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/es-ES.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/en.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/el.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/de.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/cs.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/en.xml' directly
+parsing languageFile
+parsing languageFile done
+I:PageManager::LoadFileToBuffer loading filename: '/twres/ui.xml' directly
+I:Checking resolution...
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /sdcard/Fox/.navbar/navbar.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/sdcard/Fox/.navbar/navbar.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/themes/navbar.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /sdcard/Fox/.theme/font.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/sdcard/Fox/.theme/font.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/themes/font.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /sdcard/Fox/.theme/style.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/sdcard/Fox/.theme/style.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/themes/style.xml' directly
+I:Loading resources...
+I:Failed to load image from Default/Progress/indeterminate033, error -1
+I:Loading variables...
+I:Loading pages...
+I:Including file: /sdcard/Fox/.theme/accent.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/sdcard/Fox/.theme/accent.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/themes/accent.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /sdcard/Fox/.theme/action.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/sdcard/Fox/.theme/action.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/themes/action.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/resources/images.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/resources/images.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/resources/vars.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/resources/vars.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/resources/styles.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/resources/styles.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/pages/templates/base.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/templates/base.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/pages/templates/keyboard.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/templates/keyboard.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/pages/templates/navbar.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/templates/navbar.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/pages/templates/statusbar.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/templates/statusbar.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/pages/templates/templates.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/templates/templates.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Including file: /twres/pages/main.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/main.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page main
+I:Loading page navbar
+I:Loading page welcome
+I:Loading page aroma_busy
+I:Loading page fastboot
+I:Including file: /twres/pages/pass.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/pass.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page password_enter
+I:Loading page password_enter_num
+I:Loading page password_enter_pattern
+I:Loading page password_check
+I:Loading page pass_pattern
+I:Loading page pass_pattern_2
+I:Loading page pass_text
+I:Loading page pass_text_2
+I:Loading page pass_pin
+I:Loading page pass_pin_2
+I:Loading page pass_remove
+I:Loading page pass_check
+I:Including file: /twres/pages/install.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/install.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page flash_confirm
+I:Loading page fox_modules_confirm
+I:Loading page queueview
+I:Loading page flash_image_confirm
+I:Loading page flash_image_ab
+I:Loading page add_zip
+I:Loading page flash_zip
+I:Loading page flash_image
+I:Loading page flash_done
+I:Loading page flash_sleep_and_reboot
+I:Loading page flash_image_done
+I:Including file: /twres/pages/wipe.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/wipe.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page wipe
+I:Loading page formatdata
+I:Loading page formatdata_confirm
+I:Loading page wipe_confirm_action
+I:Loading page wipe_action_page
+I:Loading page wipe_action_complete
+I:Loading page checkpartitionlist
+I:Loading page partitionoptions
+I:Loading page refreshfilesystem
+I:Loading page selectfilesystem
+I:Loading page part_options
+I:Including file: /twres/pages/backup.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/backup.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page backup
+I:Loading page check_storage_back
+I:Loading page backup_prep
+I:Loading page backupname
+I:Loading page backupname_auto
+I:Loading page backup_encryption
+I:Loading page backup_encryption2
+I:Loading page checkbackuppassword
+I:Loading page checkbackuppassword2
+I:Loading page backup_run
+I:Loading page backup_digest
+I:Loading page backup_action_complete
+I:Including file: /twres/pages/restore.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/restore.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page restore
+I:Loading page restore_prep
+I:Loading page restore_read
+I:Loading page restore_decrypt
+I:Loading page try_restore_decrypt
+I:Loading page restore_select
+I:Loading page renamebackup
+I:Loading page deletebackup
+I:Loading page restore_run
+I:Loading page restore_confirm_action
+I:Loading page restore_action_page
+I:Loading page restore_action_complete
+I:Including file: /twres/pages/mount.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/mount.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page mount
+I:Loading page usb_mount
+I:Loading page system_readonly_check
+I:Loading page system_readonly
+I:Loading page system_readonly_mount
+I:Loading page decrypt
+I:Loading page decrypt_pin
+I:Loading page decrypt_pattern
+I:Loading page decrypt_redirect
+I:Loading page trydecrypt
+I:Loading page reapply_settings
+I:Loading page decrypt_users
+I:Loading page decrypt_users2
+I:Including file: /twres/pages/files.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/files.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page filemanagerlist
+I:Loading page file_quick_actions
+I:Loading page file_quick_actions_dark
+I:Loading page select_path
+I:Loading page select_path_dark
+I:Loading page files_mkdir
+I:Loading page fm_multiselection
+I:Loading page fm_ms_actions
+I:Loading page file_search
+I:Loading page file_dark_search
+I:Loading page files_redirect
+I:Loading page files_bookmarks_prepare
+I:Loading page files_bookmarks
+I:Loading page filemanageroptions
+I:Loading page openas
+I:Loading page fm_file_checksum
+I:Loading page fm_file_checksum_calc
+I:Loading page fm_file_info
+I:Loading page choosedestinationfolder
+I:Loading page filemanagerrenamefile
+I:Loading page filemanagerrenamefolder
+I:Loading page filemanagerchmod
+I:Loading page filemanagerchmod_key
+I:Loading page filemanagerconfirm
+I:Loading page archive_confirm
+I:Loading page archive_cmd
+I:Loading page filemanageraction
+I:Loading page filemanagercomplete
+I:Loading page cat_file
+I:Including file: /twres/pages/magisk.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/magisk.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page magisk_mount
+I:Loading page magisk
+I:Loading page magisk_actions
+I:Loading page magisk_delete
+I:Including file: /twres/pages/advanced.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/advanced.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page advanced
+I:Loading page mod_survival
+I:Loading page mod_magisk
+I:Loading page mod_unmagisk
+I:Loading page mod_reset
+I:Loading page mod_pass
+I:Loading page fox_modules
+I:Loading page partsdcard
+I:Loading page htcdumlock
+I:Loading page terminal
+I:Loading page sideload
+I:Loading page fixcontexts
+I:Loading page apps_load
+I:Loading page apps_list
+I:Unable to open '/tmp/listapps/list'
+I:Unable to open '/tmp/listapps/list'
+I:Including file: /twres/pages/reboot.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/reboot.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page reboot
+I:Loading page set_slot
+I:Including file: /twres/pages/settings.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/settings.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page settings
+I:Loading page ext_context
+I:Loading page ext_general
+I:Loading page pass_select
+I:Loading page ext_screen
+I:Loading page ext_vibrate
+I:Loading page ext_backup
+I:Loading page ext_time
+I:Loading page ext_time_offset
+I:Loading page check_zone
+I:Loading page ext_time_lang
+I:Loading page ext_time_lang_busy
+I:Loading page about
+I:Loading page about_credits
+I:Parsing file: /twres/credits.txt
+I:Parsing file: /twres/translators.txt
+I:Parsing file: /twres/changelog.txt
+I:Loading page ext_gov
+I:Loading page ext_backup_quick
+I:Including file: /twres/pages/universal.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/universal.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page filecheck
+I:Loading page rebootcheck
+I:Loading page rebootcheckoverlay
+I:Loading page no_os_warning
+I:Loading page clear_vars
+I:Loading page confirm_action
+I:Loading page action_page
+I:Loading page ota_simple
+I:Loading page singleaction_page
+I:Loading page action_complete
+I:Including file: /twres/pages/anywhere.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/anywhere.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page lock
+I:Loading page console
+I:Including file: /twres/pages/dialogs.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/dialogs.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page menu
+I:Loading page menu_sort
+I:Loading page fm_sort
+I:Loading page dialog_magisk_not_found
+I:Loading page dialog_reset_average
+I:Loading page dialog_lost_info
+I:Loading page dialog_app
+I:Loading page dialog_error_partition
+I:Loading page pass_error
+I:Including file: /twres/pages/customization.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/customization.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page ext_custom_reset
+I:Loading page ext_custom_gest
+I:Loading page ext_custom
+I:Loading page ext_custom_status
+I:Loading page ext_custom_key
+I:Loading page ext_custom_lock
+I:Loading page ext_custom_nav
+I:Loading page ext_custom_other
+I:Loading page ext_custom_nav_error
+I:Loading page ext_custom_nav_no_switch
+I:Loading page ext_custom_fonts_check
+I:Loading page ext_custom_fonts
+I:Loading page ext_custom_fonts_sec
+I:Loading page ext_custom_fonts_size
+I:Loading page ext_custom_fonts_cn
+I:Loading page ext_custom_theme
+I:Loading page ext_custom_splash
+I:Loading page ext_custom_splash_color
+I:Loading page ext_custom_splash_logo
+I:Loading page ext_custom_splash_select
+I:Loading page apply_changes
+I:Loading page apply_splash
+I:Including file: /twres/pages/fox.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/fox.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page fox_ota
+I:Loading page fox_ota_lite
+I:Loading page fox_lab
+I:Loading page debug_pages
+I:Loading page debug
+I:Loading page debug_plus
+I:Loading page scaling
+I:Including file: /sbin/maintainer.xml...
+I:PageManager::LoadFileToBuffer loading filename: '/sbin/maintainer.xml' directly
+I:PageManager::LoadFileToBuffer loading filename: '/twres/pages/dummy.xml' directly
+I:Loading resources...
+I:Loading variables...
+I:Loading pages...
+I:Loading page maintainer
+I:Set overlay: ''
+I:Set page: 'clear_vars'
+I:DEBUG - found white led on /sys/class/leds/white/ pathI:Set page: 'navbar'
+I:Set page: 'filemanagerlist'
+I:Switching packages (OrangeFox)
+Startup Commands: 
+ro.boottime.adbd=3353118926
+ro.boottime.init=2453
+ro.boottime.init.selinux=11
+ro.boottime.init.cold_boot_wait=836
+ro.boottime.ueventd=2483816599
+ro.boottime.recovery=3338357205
+ro.boottime.sbinqseecomd=3353619342
+ro.boottime.keymaster-3-0=3373880803
+ro.boottime.gatekeeper-1-0=3374337990
+ro.boottime.servicemanager=3374869240
+ro.boottime.set_permissive=3337780539
+ro.boottime.hwservicemanager=3373398042
+ro.config.ringtone=omni_ringtone1.ogg,omni_ringtone1.ogg
+ro.config.alarm_alert=omni_alarm1.ogg
+ro.config.notification_sound=omni_notification1.ogg
+dalvik.vm.isa.arm.variant=cortex-a73
+dalvik.vm.isa.arm.features=default
+dalvik.vm.isa.arm64.variant=kryo
+dalvik.vm.isa.arm64.features=default
+dalvik.vm.lockprof.threshold=500
+dalvik.vm.stack-trace-dir=/data/anr
+dalvik.vm.image-dex2oat-filter=verify-at-runtime
+debug.atrace.tags.enableflags=0
+ro.adb.secure=0
+ro.art.hiddenapi.warning=1
+ro.com.google.clientidbase=android-google
+ro.com.android.wifi-watchlist=GoogleGuest
+ro.opa.eligible_device=true
+ro.url.legal=http://www.google.com/intl/%s/mobile/android/basic/phone-legal.html
+ro.boot.hwc=Global
+ro.boot.cpuid=0x748d63ec
+ro.boot.console=ttyMSM0
+ro.boot.hwlevel=0
+ro.boot.selinux=permissive
+ro.boot.baseband=sdm
+ro.boot.configfs=true
+ro.boot.fpsensor=gdx
+ro.boot.hardware=qcom
+ro.boot.hwdevice=whyred
+ro.boot.hwversion=1.20.0
+ro.boot.keymaster=1
+ro.boot.bootdevice=c0c4000.sdhci
+ro.boot.secureboot=1
+ro.boot.veritymode=enforcing
+ro.boot.usbcontroller=a800000.dwc3
+ro.boot.verifiedbootstate=green
+ro.omni.device=whyred
+ro.omni.version=16.1.0-20230411-whyred-HOMEMADE
+ro.omni.version.security_patch=
+ro.twrp.sar=false
+ro.vndk.lite=true
+ro.vndk.version=28
+ro.wifi.channels=
+ro.allow.mock.location=1
+ro.build.id=PQ2A.190405.003
+ro.build.date=Tue Apr 11 09:55:34 IST 2023
+ro.build.date.utc=1510672800
+ro.build.date.utc_fox=1681187256
+ro.build.host=cirrus-ci-task-6469403861057536
+ro.build.tags=test-keys
+ro.build.type=eng
+ro.build.user=
+ro.build.flavor=omni_whyred-eng
+ro.build.fox_id=377de214-6e07-4d86-824e-dea9f1c9450f
+ro.build.display.id=omni_whyred-eng 16.1.0 PQ2A.190405.003 eng..20230411.095552 test-keys
+ro.build.product=whyred
+ro.build.selinux=1
+ro.build.version.sdk=28
+ro.build.version.base_os=
+ro.build.version.release=16.1.0
+ro.build.version.codename=REL
+ro.build.version.incremental=b03b2f2bb8
+ro.build.version.preview_sdk=0
+ro.build.version.all_codenames=REL
+ro.build.version.security_patch=2019-04-05
+ro.build.version.min_supported_target_sdk=17
+ro.build.description=omni_whyred-eng 16.1.0 PQ2A.190405.003 eng..20230411.095552 test-keys
+ro.build.characteristics=default
+ro.bionic.ld.warning=1
+ro.kernel.android.checkjni=1
+ro.secure=0
+ro.treble.enabled=true
+ro.product.cpu.abi=arm64-v8a
+ro.product.cpu.abilist=armeabi-v7a,armeabi
+ro.product.cpu.abilist32=armeabi-v7a,armeabi
+ro.product.cpu.abilist64=
+ro.product.name=omni_whyred
+ro.product.brand=Xiaomi
+ro.product.model=Xiaomi Redmi Note 5 Pro
+ro.product.device=whyred
+ro.product.mod_device=whyred_global
+ro.product.manufacturer=Xiaomi
+ro.baseband=sdm
+ro.bootmode=unknown
+ro.hardware=qcom
+ro.revision=0
+ro.services.whitelist.packagelist=com.google.android.gms
+ro.bootimage.build.date=Tue Apr 11 09:55:34 IST 2023
+ro.bootimage.build.date.utc=1681187256
+ro.bootimage.build.date.utc_fox=1681187256
+ro.bootimage.build.fingerprint=Xiaomi/omni_whyred/whyred:16.1.0/PQ2A.190405.003/04110955:eng/test-keys
+ro.orangefox.sar=0
+ro.orangefox.boot=1
+ro.orangefox.boot.header.version=0
+ro.orangefox.type=Stable
+ro.orangefox.build=orangefox
+ro.orangefox.kernel=4.4.302-Reza-Recovery
+ro.orangefox.variant=default
+ro.orangefox.version=R11.1
+ro.bootloader=unknown
+ro.debuggable=1
+ro.modversion=OmniROM-16.1.0-20230411-whyred-HOMEMADE
+ro.setupwizard.enterprise_mode=1
+ro.property_service.version=2
+ro.control_privapp_permissions=enforce
+ro.actionable_compatible_property.enabled=false
+fbe.data.wrappedkey=true
+init.svc.adbd=running
+init.svc.ueventd=running
+init.svc.recovery=running
+init.svc.sbinqseecomd=running
+init.svc.keymaster-3-0=restarting
+init.svc.gatekeeper-1-0=restarting
+init.svc.servicemanager=running
+init.svc.set_permissive=stopped
+init.svc.hwservicemanager=running
+crypto.ready=1
+recovery.perf.mode=0
+orangefox.rom.sdk=29
+orangefox.miui.rom=0
+orangefox.super.partition=false
+orangefox.system.mount_point=/system
+orangefox.system.block_device=/dev/block/mmcblk0p61
+orangefox.vendor.mount_point=/vendor
+orangefox.vendor.block_device=/dev/block/mmcblk0p62
+orangefox.postinit.status=1
+orangefox.realtreble.rom=0
+orangefox.crash_counter=0
+orangefox.action_complete=0
+sys.usb.ffs.ready=1
+ro.build.fingerprint=Xiaomi/qassa_whyred/whyred:10/QQ3A.200805.001/b03b2f2bb8:userdebug/release-keys
+hwservicemanager.ready=true
+ro.persistent_properties.ready=true
+ro.boot.serialno=26bea10
+ro.serialno=26bea10
+service.adb.root=1
+net.bt.name=Android
+net.tethering.noprovisioning=true
+sys.usb.rmnet.func.name=rmnet_bam
+sys.usb.rndis.func.name=rndis_bam
+sys.usb.state=adb
+sys.usb.controller=a800000.dwc3
+sys.listeners.registered=true
+persist.sys.usb.config=adb
+persist.sys.dalvik.vm.lib.2=libart.so
+persist.sys.disable_rescue=true
+sys.usb.config=adb
+ro.hardware.keystore=sdm660
+ro.crypto.type=file
+ro.crypto.state=encrypted
+
+SELinux contexts loaded from /file_contexts
+Full SELinux support is present.
+tw_get_context got selinux context: u:object_r:media_rw_data_file:s0
+I:Got default contexts and file mode for storage files.
+I:Unable to find source file /cache/recovery/log.gz
+I:Attempt to load settings from settings file...
+I:InfoManager loading from '/data/media/0/Fox/.foxs'.
+I:Backup folder set to '/data/media/0/Fox/BACKUPS/26bea10'
+I:Copied file /etc/recovery.fstab to /cache/recovery/recovery.fstab
+I:Version number saved to '/cache/recovery/.version'
+I:Unable to mount '/sdcard1'
+I:Actual block device: '', current file system: 'vfat'
+I:Unable to mount '/usb_otg'
+I:Actual block device: '', current file system: 'vfat'
+I:TWFunc::Set_Brightness: Setting brightness control to 4095
+I:PassBak: Loaded backup
+I:PageManager::LoadFileToBuffer loading filename: '/twres/languages/en.xml' directly
+parsing languageFile
+parsing languageFile done
+I:Translating partition display names
+I:Backup folder set to '/data/media/0/Fox/BACKUPS/26bea10'
+--------------------------
+Welcome to OrangeFox Recovery!
+[Platform]  : whyred
+[Release]   : R11.1
+[Variant]   : default
+[Codebase]  : 28, 2022-12-05 (bc51c51d)
+[Build date]: Tue Apr 11 04:27:36 2023
+[Build type]: Stable
+[Support]   : https://t.me/OrangeFoxChat
+
+OrangeFox websites:
+[Downloads] : https://orangefox.download/
+[Guides/FAQ]: https://wiki.orangefox.tech/guides/
+[App]       : https://app.orangefox.tech/
+--------------------------
+I:DEBUG: OrangeFox: the startup script has been executed.
+* Display:   tianma td4310 fhd video mode dsi panel
+* Device:    whyred
+* Custom ROM (SDK:29, Android 10)
+* QQ3A.200805.001
+* (b03b2f2bb8)
+* Fingerprint: Xiaomi/qassa_whyred/whyred:10/QQ3A.200805.001/b03b2f2bb8:userdebug/release-keys
+--------------------------
+I:ROM Status: QQ3A.200805.001
+I:Themes version: 1.1
+I:Starting MTP
+I:Cannot find file /sys/class/android_usb/android0/idVendor
+I:Cannot find file /sys/class/android_usb/android0/idProduct
+I:sending message to add 65537 '/data/media/0' 'Internal Storage'
+I:Message sent, add storage ID: 65537 '/data/media/0'
+MTP is enabled
+I:[MTP] Starting MTP
+I:Check_Lifetime_Writes result: '1733985'
+I:PassBak: Loaded backup
+I:Switching packages (OrangeFox)
+I:Starting Adb Backup FIFO
+I:Set page: 'main'
+I:Set overlay: ''
+I:Set page: 'clear_vars'
+I:DEBUG - found white led on /sys/class/leds/white/ pathI:Set page: 'navbar'
+I:Set page: 'filemanagerlist'
+I:[MTP] created new mtpserver object
+E:[MTP] Failed to start usb driver!I:[MTP] mtppipe add storage 65537 '/data/media/0'
+I:Set page: 'files_redirect'
+I:Set page: 'flash_confirm'
+I:Cannot find file /sys/class/timed_output/vibrator/enable
+I:Cannot find file /sys/class/timed_output/vibrator/enable
+I:Set page: 'flash_zip'
+I:operation_start: 'Flashing'
+Installing ZIP file '/sdcard/whyred-ksun-v3.2.2-10-legacy-20260524-2100-6e24ac0b.zip'
+I:Update binary zip
+Verifying package compatibility...
+Package doesn't contain compatibility.zip entry
+Detecting Current Package
+I:Zip does not contain SELinux file_contexts file in its root.
+I:Legacy property environment not used in updater.
+ 
+/tmp/updater: line 280: cd: /tmp/anykernel/../: No such file or directory
+Archive:  /sdcard/whyred-ksun-v3.2.2-10-legacy-20260524-2100-6e24ac0b.zip
+  inflating: tools/fec
+  inflating: Image.gz-dtb
+  inflating: tools/httools_static
+  inflating: sdm636-mtp_whyred-qti.dtb
+  inflating: META-INF/com/google/android/updater-script
+  inflating: META-INF/com/google/android/update-binary
+  inflating: LICENSE
+  inflating: modules/system/lib/modules/placeholder
+  inflating: ramdisk/placeholder
+  inflating: tools/snapshotupdater_static
+  inflating: tools/magiskpolicy
+  inflating: tools/ak3-core.sh
+  inflating: anykernel.sh
+  inflating: tools/magiskboot
+  inflating: tools/busybox
+  inflating: tools/lptools_static
+  inflating: patch/placeholder
+Whyred KSUN-Next + SUSFS Kernel
+ 
+AnyKernel3 by osm0sis @ xda-developers
+ 
+AK_BASE_VERSION=20260225
+ 
+Unmounting...
+Mounting...
+/persist (fstab)
+/system ($ANDROID_ROOT)
+/system_root (moved)
+/vendor (fstab)
+/tmp/updater: line 60: warning: command substitution: ignored null byte in input
+/apex/com.android.conscrypt (bind)
+/apex/com.android.media (bind)
+/apex/com.android.media.swcodec (bind)
+/apex/com.android.resolv (bind)
+/apex/com.android.runtime (bind)
+/apex/com.android.tzdata (bind)
+/system (bind)
+ 
+Checking device...
+whyred
+ 
+Installing...
+/dev/block/bootdevice/by-name/boot
+64+0 records in
+64+0 records out
+67108864 bytes (64.0MB) copied, 0.341299 seconds, 187.5MB/s
+Parsing boot image: [/tmp/anykernel/boot.img]
+HEADER_VER      [0]
+KERNEL_SZ       [12072399]
+RAMDISK_SZ      [775567]
+SECOND_SZ       [0]
+EXTRA_SZ        [0]
+OS_VERSION      [10.0.0]
+OS_PATCH_LEVEL  [2023-02]
+PAGESIZE        [4096]
+NAME            []
+CMDLINE         [console=ttyMSM0,115200,n8 androidboot.console=ttyMSM0 earlycon=msm_serial_dm,0xc170000 androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x37 ehci-hcd.park=3 lpm_levels.sleep_disabled=1 sched_enable_hmp=1 sched_enable_power_aware=1 service_locator.enable=1 swiotlb=1 androidboot.configfs=true androidboot.usbcontroller=a800000.dwc3 loop.max_part=7 usbcore.autosuspend=7 buildvariant=userdebug]
+CHECKSUM        [02d0d254686ab04200ad5a9b01e9170ef01e9371000000000000000000000000]
+KERNEL_DTB_SZ   [462349]
+KERNEL_FMT      [gzip]
+RAMDISK_FMT     [gzip]
+cp: '/tmp/anykernel/split_img/ramdisk.cpio' and 'ramdisk.cpio' are the same file
+Loading cpio: [ramdisk.cpio]
+Parsing boot image: [/tmp/anykernel/boot.img]
+HEADER_VER      [0]
+KERNEL_SZ       [12072399]
+RAMDISK_SZ      [775567]
+SECOND_SZ       [0]
+EXTRA_SZ        [0]
+OS_VERSION      [10.0.0]
+OS_PATCH_LEVEL  [2023-02]
+PAGESIZE        [4096]
+NAME            []
+CMDLINE         [console=ttyMSM0,115200,n8 androidboot.console=ttyMSM0 earlycon=msm_serial_dm,0xc170000 androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x37 ehci-hcd.park=3 lpm_levels.sleep_disabled=1 sched_enable_hmp=1 sched_enable_power_aware=1 service_locator.enable=1 swiotlb=1 androidboot.configfs=true androidboot.usbcontroller=a800000.dwc3 loop.max_part=7 usbcore.autosuspend=7 buildvariant=userdebug]
+CHECKSUM        [02d0d254686ab04200ad5a9b01e9170ef01e9371000000000000000000000000]
+KERNEL_DTB_SZ   [462349]
+KERNEL_FMT      [gzip]
+RAMDISK_FMT     [gzip]
+Repack to boot image: [/tmp/anykernel/boot-new.img]
+HEADER_VER      [0]
+KERNEL_SZ       [12459995]
+RAMDISK_SZ      [775567]
+SECOND_SZ       [0]
+EXTRA_SZ        [0]
+OS_VERSION      [10.0.0]
+OS_PATCH_LEVEL  [2023-02]
+PAGESIZE        [4096]
+NAME            []
+CMDLINE         [console=ttyMSM0,115200,n8 androidboot.console=ttyMSM0 earlycon=msm_serial_dm,0xc170000 androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x37 ehci-hcd.park=3 lpm_levels.sleep_disabled=1 sched_enable_hmp=1 sched_enable_power_aware=1 service_locator.enable=1 swiotlb=1 androidboot.configfs=true androidboot.usbcontroller=a800000.dwc3 loop.max_part=7 usbcore.autosuspend=7 buildvariant=userdebug]
+CHECKSUM        [f03418f53a457e0ff1a2a6cdc86b7a431257d3cb000000000000000000000000]
+64+0 records in
+64+0 records out
+67108864 bytes (64.0MB) copied, 0.590116 seconds, 108.5MB/s
+ 
+Unmounting...
+Unmounting apex...
+ 
+Done!
+I:Process ended with no errors.
+I:Install took 6 second(s).
+I:OrangeFox: installed standard zip: /sdcard/whyred-ksun-v3.2.2-10-legacy-20260524-2100-6e24ac0b.zip
+I:flash_zip: installer code = 0
+I:Cannot find file /sys/class/timed_output/vibrator/enable
+Updating partition details...
+I:Data backup size is 1133MB, free: 17786MB.
+I:Can't probe device /data/media/0
+Failed to mount '/cust' (Invalid argument)
+I:Actual block device: '/dev/block/mmcblk0p63', current file system: 'ext4'
+I:Unable to mount '/sdcard1'
+I:Actual block device: '', current file system: 'vfat'
+I:Unable to mount '/usb_otg'
+I:Actual block device: '', current file system: 'vfat'
+...done
+I:Set page: 'flash_done'
+I:operation_end - status=0
+I:Cannot find file /sys/class/timed_output/vibrator/enable
+I:DEBUG - found white led on /sys/class/leds/white/ pathI:Set page: 'confirm_action'
+I:Cannot find file /sys/class/timed_output/vibrator/enable
+I:Set page: 'action_page'
+I:operation_start: 'Format'
+Formatting Cache using mke2fs...
+I:mke2fs command: mke2fs -t ext4 -b 4096 /dev/block/mmcblk0p60 65536
+mke2fs 1.43.3 (04-Sep-2016)
+Discarding device blocks:  4096/65536           done                            
+Creating filesystem with 65536 4k blocks and 65536 inodes
+Filesystem UUID: b9207278-34e7-448a-b9c9-7217125712fc
+Superblock backups stored on blocks: 
+	32768
+
+Allocating group tables: 0/2   done                            
+Writing inode tables: 0/2   done                            
+Creating journal (4096 blocks): done
+Writing superblocks and filesystem accounting information: 0/2   done
+
+I:Process ended with no errors.
+I:e2fsdroid command: e2fsdroid -e -S /file_contexts -a /cache /dev/block/mmcblk0p60
+SELinux: Loaded file_contexts
+Created filesystem with 11/65536 inodes and 6190/65536 blocks
+I:Process ended with no errors.
+Done
+I:Recreating /cache/recovery/ folder.
+I:Copied file /etc/recovery.fstab to /cache/recovery/recovery.fstab
+I:Version number saved to '/cache/recovery/.version'
+Updating partition details...
+I:Data backup size is 1133MB, free: 17786MB.
+I:Can't probe device /data/media/0
+Failed to mount '/cust' (Invalid argument)
+I:Actual block device: '/dev/block/mmcblk0p63', current file system: 'ext4'
+I:Unable to mount '/sdcard1'
+I:Actual block device: '', current file system: 'vfat'
+I:Unable to mount '/usb_otg'
+I:Actual block device: '', current file system: 'vfat'
+...done
+I:Set overlay: ''
+I:Set page: 'action_complete'
+I:operation_end - status=0
+I:operation_start: 'Format'
+Wiping Cache & Dalvik...
+Cleaned: /data/dalvik-cache...
+Cache & Dalvik Wipe completed
+Updating partition details...
+I:Data backup size is 1118MB, free: 17801MB.
+I:Can't probe device /data/media/0
+Failed to mount '/cust' (Invalid argument)
+I:Actual block device: '/dev/block/mmcblk0p63', current file system: 'ext4'
+I:Unable to mount '/sdcard1'
+I:Actual block device: '', current file system: 'vfat'
+I:Unable to mount '/usb_otg'
+I:Actual block device: '', current file system: 'vfat'
+...done
+I:operation_end - status=0
+I:Cannot find file /sys/class/timed_output/vibrator/enable
+I:Set page: 'rebootcheck'
+I:OrangeFox: Disabling stock recovery [search-dir=/system]...
+I:OrangeFox: checking /system ...
+I:OrangeFox: checking /system ...
+I:OrangeFox: checking /vendor ...
+I:Unable to find source file /cache/recovery/log.gz
+Rebooting...
+I:InfoManager saving '/persist/.foxs'
+I:Saved settings file values to /persist/.foxs
+I:PassBak: Created backup
+I:InfoManager saving '/data/media/0/Fox/.foxs'
+I:Saved settings file values to '/data/media/0/Fox/.foxs'
+I:Copied file /cache/recovery/log.gz to /cache/recovery/last_log.gz

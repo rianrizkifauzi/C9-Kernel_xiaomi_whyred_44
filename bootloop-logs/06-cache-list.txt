@@ -1,0 +1,9 @@
+total 104
+drwxrwx--- 2 system cache   4096 2026-05-24 21:22 .
+drwxrwx--- 6 system cache   4096 1970-01-01 01:54 ..
+-rw-rw-rw- 1 root   root       5 2026-05-24 21:22 .version
+-rw-rw-rw- 1 root   root       1 2026-05-24 21:04 intent
+-rw-r----- 1 root   root   19586 2026-05-24 21:22 last_log.gz
+-rw------- 1 system system 26294 2026-05-24 21:22 log.gz
+-rw-r--r-- 1 root   root    3914 2026-05-24 21:22 recovery.fstab
+-rw-rw-rw- 1 root   root      77 2026-05-24 21:22 storage.fstab

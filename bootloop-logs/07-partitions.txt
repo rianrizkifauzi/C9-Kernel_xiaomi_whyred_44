@@ -1,0 +1,30 @@
+total 0
+drwxr-xr-x 2 root root 1320 1970-01-01 02:10 .
+drwxr-xr-x 3 root root 1380 1970-01-01 02:10 ..
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 abl -> /dev/block/mmcblk0p25
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 ablbak -> /dev/block/mmcblk0p26
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 apdp -> /dev/block/mmcblk0p11
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 bk1 -> /dev/block/mmcblk0p49
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 bk2 -> /dev/block/mmcblk0p51
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 bluetooth -> /dev/block/mmcblk0p38
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 boot -> /dev/block/mmcblk0p58
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 cache -> /dev/block/mmcblk0p60
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 cmnlib -> /dev/block/mmcblk0p21
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 cmnlib64 -> /dev/block/mmcblk0p23
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 cmnlib64bak -> /dev/block/mmcblk0p24
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 cmnlibbak -> /dev/block/mmcblk0p22
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 cust -> /dev/block/mmcblk0p63
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 ddr -> /dev/block/mmcblk0p28
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 devcfg -> /dev/block/mmcblk0p31
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 devcfgbak -> /dev/block/mmcblk0p30
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 devinfo -> /dev/block/mmcblk0p43
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 dip -> /dev/block/mmcblk0p27
+lrwxrwxrwx 1 root root   20 1970-01-01 02:10 dpo -> /dev/block/mmcblk0p2
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 dsp -> /dev/block/mmcblk0p48
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 frp -> /dev/block/mmcblk0p14
+lrwxrwxrwx 1 root root   20 1970-01-01 02:10 fsc -> /dev/block/mmcblk0p3
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 fsg -> /dev/block/mmcblk0p45
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 hyp -> /dev/block/mmcblk0p17
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 hypbak -> /dev/block/mmcblk0p18
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 keymaster -> /dev/block/mmcblk0p36
+lrwxrwxrwx 1 root root   21 1970-01-01 02:10 keymasterbak -> /dev/block/mmcblk0p37
