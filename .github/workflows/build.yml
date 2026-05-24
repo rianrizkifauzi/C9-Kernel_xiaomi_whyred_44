@@ -8,9 +8,9 @@ on:
         required: true
         default: 'user-why-red/android_kernel_xiaomi_sdm660_44'
       kernel_branch:
-        description: 'Kernel source branch (android-4.4-stable=clean LTS, ksu-patches=KSU pre-patches)'
+        description: 'Kernel source branch (ksu-patches=KSU pre-patched manual hooks, android-4.4-stable=clean)'
         required: true
-        default: 'android-4.4-stable'
+        default: 'ksu-patches'
       defconfig:
         description: 'Defconfig name (under arch/arm64/configs/). Leave "auto" to autodetect whyred.'
         required: true
@@ -183,17 +183,16 @@ jobs:
         working-directory: kernel_source
         run: |
           set -e
-          # rsuntk/KernelSU has no hook check in Makefile - works with any kernel.
-          # KSUN-Next legacy needs ksu_handle_sys_reboot in kernel/reboot.c for manual hooks.
-          if [ "${{ inputs.ksun_repo }}" = "rsuntk/KernelSU" ]; then
-            echo "rsuntk/KernelSU detected - no hook mode check needed"
-            echo "KSU_HOOK_MODE=auto" >> $GITHUB_ENV
-          elif [ -f kernel/reboot.c ] && grep -q "ksu_handle_sys_reboot" kernel/reboot.c 2>/dev/null; then
-            echo "Manual hooks (ksu_handle_sys_reboot) detected -> using MANUAL hooks"
+          # Check if kernel source already has KSU manual hook calls
+          # (e.g. ksu-patches branch of user-why-red has these pre-patched)
+          if grep -rq "ksu_handle_execveat\|ksu_handle_faccessat\|ksu_handle_stat" fs/ 2>/dev/null; then
+            echo "✅ Manual KSU hooks detected in kernel source - driver will trigger via syscalls"
             echo "KSU_HOOK_MODE=manual" >> $GITHUB_ENV
           else
-            echo "No manual hooks found -> using KPROBES hooks"
-            echo "KSU_HOOK_MODE=kprobes" >> $GITHUB_ENV
+            echo "⚠️  No manual hooks in kernel source"
+            echo "KSU_HOOK_MODE=stub" >> $GITHUB_ENV
+            echo "::warning::Kernel source has no KSU manual hooks. Manager may show 'Unsupported'."
+            echo "::warning::Use kernel_branch=ksu-patches for pre-patched whyred source."
           fi
 
       - name: Clone SUSFS
