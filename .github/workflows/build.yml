@@ -366,6 +366,7 @@ jobs:
             echo "# === KernelSU ==="
             echo "CONFIG_KSU=y"
             echo "CONFIG_KSU_DEBUG=n"
+            echo "CONFIG_KSU_DISABLE_MANAGER=y"
             echo "CONFIG_OVERLAY_FS=y"
           } >> "${DCFG_PATH}"
 

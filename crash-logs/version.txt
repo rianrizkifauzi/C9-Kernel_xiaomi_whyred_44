@@ -1,0 +1,1 @@
+Linux version 4.4.302-st74-San-Kernel-HalfElf-R1.1.101 (builder@github-actions) (Proton clang version 13.0.0 (https://github.com/llvm/llvm-project b4fd512c36ca344a3ff69350219e8b0a67e9472a)) #1 SMP PREEMPT Wed Jul 15 12:00:00 UTC 2018
