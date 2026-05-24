@@ -237,28 +237,36 @@ jobs:
           KBUILD_BUILD_USER: builder
           KBUILD_BUILD_HOST: github-actions
         run: |
-          set -e
+          set -eo pipefail
           export PATH="$GITHUB_WORKSPACE/toolchain/clang/bin:$PATH"
           export CROSS_COMPILE=aarch64-linux-gnu-
           export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
-          export CC="ccache clang"
 
-          # DCFG_NAME may be "vendor/whyred-perf_defconfig" — use basename for make target
+          echo "=== Toolchain check ==="
+          which clang || { echo "::error::clang not found in PATH"; exit 1; }
+          clang --version
+          aarch64-linux-gnu-ld --version | head -n1
+          aarch64-linux-gnu-gcc --version | head -n1
+          echo ""
+
           MAKE_DCFG=$(basename "${DCFG_NAME}")
+          echo "=== Generating .config from ${MAKE_DCFG} ==="
+          make O=out ARCH=arm64 "${MAKE_DCFG}" 2>&1 | tee -a build.log
 
-          make O=out ARCH=arm64 "${MAKE_DCFG}"
+          echo ""
+          echo "=== Building kernel (Clang+GNU-LD hybrid for 4.4 compat) ==="
+          # NOTE: Kernel 4.4 doesn't play nice with ld.lld (empty built-in.o issue).
+          # Use Clang for compile but GNU ld (from binutils) for link.
           make O=out ARCH=arm64 \
             CC="ccache clang" \
-            LD=ld.lld \
-            AR=llvm-ar \
-            NM=llvm-nm \
-            OBJCOPY=llvm-objcopy \
-            OBJDUMP=llvm-objdump \
-            STRIP=llvm-strip \
             CLANG_TRIPLE=aarch64-linux-gnu- \
             CROSS_COMPILE=aarch64-linux-gnu- \
             CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-            -j$(nproc --all) 2>&1 | tee build.log
+            -j$(nproc --all) 2>&1 | tee -a build.log
+
+          echo ""
+          echo "=== Build outputs ==="
+          ls -lah out/arch/arm64/boot/ || true
 
       - name: Verify build artifacts
         working-directory: kernel_source
