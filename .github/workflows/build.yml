@@ -436,7 +436,7 @@ jobs:
             }
             in_target_func && /^\{$/ {
                 print
-                print "\tksu_handle_stat(&dfd, &filename, &flags);"
+                print "\tksu_handle_stat(&dfd, &filename, &flag);"
                 in_target_func=0
                 injected_hook=1
                 next
