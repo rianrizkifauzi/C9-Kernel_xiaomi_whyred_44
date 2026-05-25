@@ -357,7 +357,7 @@ jobs:
           rm -f fs/exec.c.bak
 
       - name: Inject FULL multi-hook (5 hooks compatible with rsuntk modern manager)
-        if: ${{ env.KSU_HOOK_MODE == 'minimal_inject' && inputs.ksun_repo == 'rsuntk/KernelSU' && inputs.hook_strategy == 'full' }}
+        if: ${{ env.KSU_HOOK_MODE == 'minimal_inject' && inputs.hook_strategy == 'full' }}
         working-directory: kernel_source
         run: |
           set -e
@@ -493,10 +493,46 @@ jobs:
             rm -f fs/open.c.bak
           fi
 
+          # ===== HOOK 4: sys_reboot (kernel/reboot.c) - REQUIRED by KSUN-Next legacy Kbuild check =====
+          if [ -f kernel/reboot.c ] && ! grep -q "ksu_handle_sys_reboot" kernel/reboot.c; then
+            echo "  [reboot.c] injecting sys_reboot hook (KSUN-Next requirement)..."
+            cp kernel/reboot.c kernel/reboot.c.bak
+            awk '
+            BEGIN { in_includes=1; last_include_line="" }
+            /^#include/ { if (in_includes) { print; last_include_line=NR; next } }
+            { if (in_includes && last_include_line!="" && !/^#include/ && !/^[[:space:]]*$/) {
+                print ""
+                print "// KSU manual hook"
+                print "extern int ksu_handle_sys_reboot(int *magic1, int *magic2, unsigned int *cmd, void __user **arg);"
+                print ""
+                in_includes=0
+            } }
+            /^SYSCALL_DEFINE4\(reboot,/ {
+                print
+                in_target_func=1
+                next
+            }
+            in_target_func && /^\{$/ {
+                print
+                print "\tksu_handle_sys_reboot(&magic1, &magic2, &cmd, &arg);"
+                in_target_func=0
+                next
+            }
+            { print }
+            ' kernel/reboot.c.bak > kernel/reboot.c
+            if grep -q "ksu_handle_sys_reboot" kernel/reboot.c; then
+              echo "  ✅ kernel/reboot.c patched"
+            else
+              echo "  ⚠️  kernel/reboot.c hook injection failed (pattern no match)"
+              mv kernel/reboot.c.bak kernel/reboot.c
+            fi
+            rm -f kernel/reboot.c.bak
+          fi
+
           # ===== Verification =====
           echo ""
           echo "=== Verification ==="
-          for f in fs/exec.c fs/stat.c fs/open.c; do
+          for f in fs/exec.c fs/stat.c fs/open.c kernel/reboot.c; do
             if [ -f "$f" ]; then
               n=$(grep -c "ksu_handle_" "$f" || echo 0)
               echo "  $f: $n ksu_handle_ refs"
