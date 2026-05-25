@@ -11,6 +11,10 @@ on:
         description: 'Kernel source branch (android-4.4-stable=clean+min hook patch, ksu-patches=full pre-patched)'
         required: true
         default: 'android-4.4-stable'
+      kernel_commit:
+        description: 'Pin kernel source to specific commit SHA (use "head" for latest). e0183e3c was last confirmed booting build (run #11).'
+        required: true
+        default: 'e0183e3c'
       defconfig:
         description: 'Defconfig name (under arch/arm64/configs/). Leave "auto" to autodetect whyred.'
         required: true
@@ -20,9 +24,9 @@ on:
         required: true
         default: 'rsuntk/KernelSU'
       ksun_branch:
-        description: 'KernelSU tag/branch. Use v1.0.5-80-legacy for stable prctl-based on 4.4 (recommended). main = newest fd-based (panics on 4.4)'
+        description: 'KernelSU tag/branch. Default "main" matched manager 32490 in Run #11. v1.0.5-80-legacy = old driver line ~12xxx (mismatch with 32xxx managers).'
         required: true
-        default: 'v1.0.5-80-legacy'
+        default: 'main'
       susfs_branch:
         description: 'SUSFS branch'
         required: true
@@ -93,11 +97,27 @@ jobs:
       - name: Clone kernel source
         run: |
           set -e
-          git clone --depth=1 -b "${{ inputs.kernel_branch }}" \
+          # Initial clone with branch
+          git clone -b "${{ inputs.kernel_branch }}" \
             "https://github.com/${{ inputs.kernel_repo }}.git" kernel_source
           cd kernel_source
+
+          # Pin to specific commit if requested
+          KCOMMIT="${{ inputs.kernel_commit }}"
+          if [ -n "$KCOMMIT" ] && [ "$KCOMMIT" != "head" ] && [ "$KCOMMIT" != "HEAD" ]; then
+            echo "=== Pinning kernel source to commit: $KCOMMIT ==="
+            git checkout "$KCOMMIT" || {
+              echo "::error::Failed to checkout commit $KCOMMIT"
+              echo "Available recent commits:"
+              git log --oneline -10
+              exit 1
+            }
+          fi
+
           echo "KERNEL_VERSION=$(make kernelversion 2>/dev/null || echo unknown)" >> $GITHUB_ENV
           echo "KERNEL_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "KERNEL_FULL_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "Final kernel HEAD: $(git rev-parse --short HEAD)"
 
       - name: Resolve defconfig
         working-directory: kernel_source
