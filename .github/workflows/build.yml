@@ -27,6 +27,10 @@ on:
         description: 'KernelSU tag/branch. Default "main" matched manager 32490 in Run #11. v1.0.5-80-legacy = old driver line ~12xxx (mismatch with 32xxx managers).'
         required: true
         default: 'main'
+      ksun_commit:
+        description: 'Pin KSU to specific commit SHA (use "head" for latest). 25f7ffbe = Run #11 confirmed working snapshot.'
+        required: true
+        default: '25f7ffbe'
       susfs_branch:
         description: 'SUSFS branch'
         required: true
@@ -37,6 +41,12 @@ on:
         default: 'false'
         type: choice
         options: ['true', 'false']
+      hook_strategy:
+        description: 'Hook injection strategy: minimal (1 hook), full (5 hooks all rsuntk modern), none (use existing)'
+        required: true
+        default: 'full'
+        type: choice
+        options: ['minimal', 'full', 'none']
       skip_sig_fix:
         description: 'Skip 3-arg signature fix on ksu-patches branch (set true if branch already synced with rsuntk modern)'
         required: false
@@ -231,7 +241,7 @@ jobs:
           fi
 
       - name: Inject MINIMAL execveat hook into clean kernel source
-        if: ${{ env.KSU_HOOK_MODE == 'minimal_inject' && inputs.ksun_repo == 'rsuntk/KernelSU' }}
+        if: ${{ env.KSU_HOOK_MODE == 'minimal_inject' && inputs.ksun_repo == 'rsuntk/KernelSU' && inputs.hook_strategy == 'minimal' }}
         working-directory: kernel_source
         run: |
           set -e
@@ -346,7 +356,154 @@ jobs:
           fi
           rm -f fs/exec.c.bak
 
-      - name: Clone SUSFS
+      - name: Inject FULL multi-hook (5 hooks compatible with rsuntk modern manager)
+        if: ${{ env.KSU_HOOK_MODE == 'minimal_inject' && inputs.ksun_repo == 'rsuntk/KernelSU' && inputs.hook_strategy == 'full' }}
+        working-directory: kernel_source
+        run: |
+          set -e
+          echo "=== Strategy: inject FULL hooks for rsuntk modern manager compat ==="
+          echo "Hooks: ksu_handle_execveat, ksu_handle_stat, ksu_handle_faccessat, ksu_handle_vfs_read, ksu_handle_input_handle_event"
+          echo ""
+
+          # ===== HOOK 1: execveat (fs/exec.c) =====
+          if [ ! -f fs/exec.c ]; then
+            echo "::error::fs/exec.c not found"; exit 1
+          fi
+          if grep -q "ksu_handle_execveat" fs/exec.c; then
+            echo "  ⚠️  exec.c hook already present, skipping"
+          else
+            if grep -q "^static int do_execveat_common(int fd, struct filename" fs/exec.c; then
+              TGT="do_execveat_common"
+            elif grep -q "^static int __do_execve_file(int fd, struct filename" fs/exec.c; then
+              TGT="__do_execve_file"
+            else
+              echo "::error::Cannot find execveat function in fs/exec.c"; exit 1
+            fi
+            echo "  [exec.c] target: ${TGT}"
+            cp fs/exec.c fs/exec.c.bak
+            awk -v tgt="$TGT" '
+            BEGIN { in_includes=1; last_include_line=""; after_func_sig=0 }
+            /^#include/ { if (in_includes) { print; last_include_line=NR; next } }
+            { if (in_includes && last_include_line!="" && !/^#include/ && !/^[[:space:]]*$/) {
+                print ""
+                print "// KSU manual hook (full multi-hook injection)"
+                print "extern bool ksu_execveat_hook __read_mostly;"
+                print "extern int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv, void *envp, int *flags);"
+                print "extern int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr, void *argv, void *envp, int *flags);"
+                print ""
+                in_includes=0
+            } }
+            $0 ~ ("^static int " tgt "\\(int fd, struct filename") { print; after_func_sig=1; next }
+            after_func_sig && /^\{$/ {
+                print
+                print "\tif (likely(ksu_execveat_hook))"
+                print "\t\tksu_handle_execveat(&fd, &filename, &argv, &envp, &flags);"
+                print "\telse"
+                print "\t\tksu_handle_execveat_sucompat(&fd, &filename, NULL, NULL, NULL);"
+                after_func_sig=0
+                next
+            }
+            { print }
+            ' fs/exec.c.bak > fs/exec.c
+            grep -q "ksu_handle_execveat" fs/exec.c || { mv fs/exec.c.bak fs/exec.c; echo "::error::exec.c injection failed"; exit 1; }
+            rm -f fs/exec.c.bak
+            echo "  ✅ fs/exec.c patched"
+          fi
+
+          # ===== HOOK 2: stat (fs/stat.c) - for vfs_statx callsite =====
+          if [ -f fs/stat.c ] && ! grep -q "ksu_handle_stat" fs/stat.c; then
+            echo "  [stat.c] injecting hook..."
+            cp fs/stat.c fs/stat.c.bak
+            # Find vfs_statx() function and inject hook at top
+            awk '
+            BEGIN { in_includes=1; last_include_line=""; injected_extern=0; injected_hook=0 }
+            /^#include/ { if (in_includes) { print; last_include_line=NR; next } }
+            { if (in_includes && last_include_line!="" && !/^#include/ && !/^[[:space:]]*$/) {
+                print ""
+                print "// KSU manual hook"
+                print "extern int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags);"
+                print ""
+                in_includes=0
+                injected_extern=1
+            } }
+            # Match start of vfs_fstatat/vfs_statx function
+            /^int vfs_fstatat\(int dfd, const char __user \*filename/ ||
+            /^static int vfs_statx\(int dfd, const char __user \*filename/ ||
+            /^SYSCALL_DEFINE4\(newfstatat,/ {
+                print
+                in_target_func=1
+                next
+            }
+            in_target_func && /^\{$/ {
+                print
+                print "\tksu_handle_stat(&dfd, &filename, &flags);"
+                in_target_func=0
+                injected_hook=1
+                next
+            }
+            { print }
+            END {
+                if (!injected_extern) print "  WARN: stat.c extern not injected" > "/dev/stderr"
+                if (!injected_hook) print "  WARN: stat.c hook call not injected (function pattern not matched)" > "/dev/stderr"
+            }
+            ' fs/stat.c.bak > fs/stat.c
+            if grep -q "ksu_handle_stat" fs/stat.c; then
+              echo "  ✅ fs/stat.c patched"
+            else
+              echo "  ⚠️  fs/stat.c hook injection had warnings, restoring backup"
+              mv fs/stat.c.bak fs/stat.c
+            fi
+            rm -f fs/stat.c.bak
+          fi
+
+          # ===== HOOK 3: faccessat (fs/open.c) =====
+          if [ -f fs/open.c ] && ! grep -q "ksu_handle_faccessat" fs/open.c; then
+            echo "  [open.c] injecting faccessat hook..."
+            cp fs/open.c fs/open.c.bak
+            awk '
+            BEGIN { in_includes=1; last_include_line="" }
+            /^#include/ { if (in_includes) { print; last_include_line=NR; next } }
+            { if (in_includes && last_include_line!="" && !/^#include/ && !/^[[:space:]]*$/) {
+                print ""
+                print "// KSU manual hook"
+                print "extern int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode, int *flags);"
+                print ""
+                in_includes=0
+            } }
+            /^SYSCALL_DEFINE3\(faccessat,/ ||
+            /^long do_faccessat\(int dfd, const char __user \*filename/ {
+                print
+                in_target_func=1
+                next
+            }
+            in_target_func && /^\{$/ {
+                print
+                print "\tksu_handle_faccessat(&dfd, &filename, &mode, NULL);"
+                in_target_func=0
+                next
+            }
+            { print }
+            ' fs/open.c.bak > fs/open.c
+            if grep -q "ksu_handle_faccessat" fs/open.c; then
+              echo "  ✅ fs/open.c patched"
+            else
+              echo "  ⚠️  fs/open.c skipped (pattern no match)"
+              mv fs/open.c.bak fs/open.c
+            fi
+            rm -f fs/open.c.bak
+          fi
+
+          # ===== Verification =====
+          echo ""
+          echo "=== Verification ==="
+          for f in fs/exec.c fs/stat.c fs/open.c; do
+            if [ -f "$f" ]; then
+              n=$(grep -c "ksu_handle_" "$f" || echo 0)
+              echo "  $f: $n ksu_handle_ refs"
+            fi
+          done
+
+
         if: ${{ inputs.enable_susfs == 'true' }}
         run: |
           git clone --depth=1 -b "${{ inputs.susfs_branch }}" \
