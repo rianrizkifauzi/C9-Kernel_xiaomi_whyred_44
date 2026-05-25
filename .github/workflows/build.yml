@@ -113,23 +113,31 @@ jobs:
       - name: Clone kernel source
         run: |
           set -e
-          # Initial clone with branch
-          git clone -b "${{ inputs.kernel_branch }}" \
-            "https://github.com/${{ inputs.kernel_repo }}.git" kernel_source
-          cd kernel_source
-
-          # Pin to specific commit if requested
           KCOMMIT="${{ inputs.kernel_commit }}"
-          if [ -n "$KCOMMIT" ] && [ "$KCOMMIT" != "head" ] && [ "$KCOMMIT" != "HEAD" ]; then
-            echo "=== Pinning kernel source to commit: $KCOMMIT ==="
+          if [ -z "$KCOMMIT" ] || [ "$KCOMMIT" = "head" ] || [ "$KCOMMIT" = "HEAD" ]; then
+            echo "=== Shallow clone (head only) ==="
+            git clone --depth=1 -b "${{ inputs.kernel_branch }}" \
+              "https://github.com/${{ inputs.kernel_repo }}.git" kernel_source
+          else
+            echo "=== Shallow clone with target commit fetch: $KCOMMIT ==="
+            git clone --depth=1 -b "${{ inputs.kernel_branch }}" \
+              "https://github.com/${{ inputs.kernel_repo }}.git" kernel_source
+            cd kernel_source
+            # Fetch the specific commit shallowly
+            git fetch --depth=1 origin "$KCOMMIT" || {
+              echo "Direct fetch failed, expanding depth..."
+              git fetch --depth=200 origin "${{ inputs.kernel_branch }}" 2>/dev/null || \
+                git fetch --unshallow origin "${{ inputs.kernel_branch }}"
+            }
             git checkout "$KCOMMIT" || {
               echo "::error::Failed to checkout commit $KCOMMIT"
-              echo "Available recent commits:"
               git log --oneline -10
               exit 1
             }
+            cd ..
           fi
 
+          cd kernel_source
           echo "KERNEL_VERSION=$(make kernelversion 2>/dev/null || echo unknown)" >> $GITHUB_ENV
           echo "KERNEL_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           echo "KERNEL_FULL_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
