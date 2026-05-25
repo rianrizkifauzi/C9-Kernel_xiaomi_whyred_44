@@ -503,7 +503,7 @@ jobs:
             fi
           done
 
-
+      - name: Clone SUSFS
         if: ${{ inputs.enable_susfs == 'true' }}
         run: |
           git clone --depth=1 -b "${{ inputs.susfs_branch }}" \
