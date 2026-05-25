@@ -37,6 +37,12 @@ on:
         default: 'false'
         type: choice
         options: ['true', 'false']
+      skip_sig_fix:
+        description: 'Skip 3-arg signature fix on ksu-patches branch (set true if branch already synced with rsuntk modern)'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['true', 'false']
 
 env:
   TZ: Asia/Jakarta
@@ -213,7 +219,7 @@ jobs:
           fi
 
       - name: Fix existing hook signatures (ksu-patches branch only)
-        if: ${{ env.KSU_HOOK_MODE == 'manual_existing' }}
+        if: ${{ env.KSU_HOOK_MODE == 'manual_existing' && inputs.skip_sig_fix != 'true' }}
         working-directory: kernel_source
         run: |
           set -e
