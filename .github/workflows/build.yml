@@ -681,6 +681,46 @@ jobs:
             } >> "${DCFG_PATH}"
           fi
 
+      - name: Force KSU_VERSION via Kbuild override (fix version=0 bug)
+        if: ${{ inputs.ksun_repo == 'KernelSU-Next/KernelSU-Next' }}
+        working-directory: kernel_source
+        run: |
+          set -e
+          # Setup script clone KSU but doesn't preserve .git context properly.
+          # Kbuild fallback: KSU_VERSION_FALLBACK := 1, but actual driver returns 0.
+          # We force it by appending ccflags directly to KernelSU-Next/Kbuild.
+          
+          KBUILD_FILE="${KSU_DIR}/kernel/Kbuild"
+          if [ ! -f "$KBUILD_FILE" ]; then
+            echo "::warning::$KBUILD_FILE not found, trying alternative path"
+            KBUILD_FILE="${KSU_DIR}/Kbuild"
+          fi
+          
+          if [ -f "$KBUILD_FILE" ]; then
+            # Read the actual git tag/commit count from KSU repo
+            cd "${KSU_DIR}"
+            KSU_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v3.2.0-legacy")
+            KSU_COMMIT_COUNT=$(git rev-list --count HEAD 2>/dev/null || echo "1000")
+            # Use KSUN-Next formula: 30000 + commit_count + 150
+            FORCED_VERSION=$((30000 + KSU_COMMIT_COUNT + 150))
+            cd ..
+            
+            echo "  Forcing KSU_VERSION=$FORCED_VERSION (tag=$KSU_TAG)"
+            echo "  Appending overrides to $KBUILD_FILE"
+            
+            # Append at the end of Kbuild to override fallback
+            {
+              echo ""
+              echo "# === Workflow forced override (fix git context loss) ==="
+              echo "ccflags-y += -UKSU_VERSION"
+              echo "ccflags-y += -DKSU_VERSION=$FORCED_VERSION"
+              echo "ccflags-y += -UKSU_VERSION_TAG"
+              echo "ccflags-y += -DKSU_VERSION_TAG=\\\"$KSU_TAG\\\""
+            } >> "$KBUILD_FILE"
+            
+            echo "  ✅ KSU_VERSION forced to $FORCED_VERSION"
+          fi
+
       - name: Build kernel
         working-directory: kernel_source
         env:
