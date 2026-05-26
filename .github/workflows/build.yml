@@ -24,11 +24,11 @@ on:
         required: true
         default: 'ThRE-Team/KernelSU-Next'
       ksun_branch:
-        description: 'KernelSU tag/branch. v3.2.0-legacy = matches Manager v3.2.0-spoofed CMD numbering for non-GKI 4.4.'
+        description: 'KernelSU tag/branch. legacy = branch dengan struktur folder lengkap (manager/, hook/, core/) match Kbuild. Tag v3.2.0-legacy BROKEN (file flat).'
         required: true
-        default: 'v3.2.0-legacy'
+        default: 'legacy'
       ksun_commit:
-        description: 'Pin KSU to specific commit SHA (use "head" for tag head). 8ef29164 = v3.2.0-legacy tag commit.'
+        description: 'Pin KSU to specific commit SHA (use "head" for branch head).'
         required: true
         default: 'head'
       susfs_branch:
