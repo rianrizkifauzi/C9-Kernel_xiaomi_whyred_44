@@ -539,50 +539,45 @@ jobs:
 
           # ===== KSU_NEXT BACKPORT: path_umount (KSUN-Next requires this for 4.4) =====
           # Kbuild auto-patch fails on 4.4 because pattern `^static bool is_mnt_ns_file` not matched.
-          # We manually inject path_umount + can_umount and forward declaration.
+          # We manually inject path_umount + can_umount via printf (avoid YAML heredoc issue).
           if [ -f fs/namespace.c ] && ! grep -q "^int path_umount" fs/namespace.c; then
-            echo "  [namespace.c] injecting path_umount/can_umount backport (KSUN-Next requirement)..."
-            cp fs/namespace.c fs/namespace.c.bak
-            # Find a stable insertion point (before do_umount function)
-            # Append the functions at the end of file as a fallback
-            cat >> fs/namespace.c <<'EOF_PATH_UMOUNT'
-
-/* KSU_NEXT: backport for path_umount (required by KSUN-Next driver) */
-static int can_umount_ksu(const struct path *path, int flags)
-{
-	struct mount *mnt = real_mount(path->mnt);
-	if (flags & ~(MNT_FORCE | MNT_DETACH | MNT_EXPIRE | UMOUNT_NOFOLLOW))
-		return -EINVAL;
-	if (!may_mount())
-		return -EPERM;
-	if (path->dentry != path->mnt->mnt_root)
-		return -EINVAL;
-	if (!check_mnt(mnt))
-		return -EINVAL;
-	if (mnt->mnt.mnt_flags & MNT_LOCKED)
-		return -EINVAL;
-	if (flags & MNT_FORCE && !capable(CAP_SYS_ADMIN))
-		return -EPERM;
-	return 0;
-}
-
-int path_umount(struct path *path, int flags)
-{
-	struct mount *mnt = real_mount(path->mnt);
-	int ret;
-	ret = can_umount_ksu(path, flags);
-	if (!ret)
-		ret = do_umount(mnt, flags);
-	dput(path->dentry);
-	mntput_no_expire(mnt);
-	return ret;
-}
-EOF_PATH_UMOUNT
+            echo "  [namespace.c] injecting path_umount/can_umount backport..."
+            {
+              printf '\n'
+              printf '/* KSU_NEXT: backport for path_umount (required by KSUN-Next driver) */\n'
+              printf 'static int can_umount_ksu(const struct path *path, int flags)\n'
+              printf '{\n'
+              printf '\tstruct mount *mnt = real_mount(path->mnt);\n'
+              printf '\tif (flags & ~(MNT_FORCE | MNT_DETACH | MNT_EXPIRE | UMOUNT_NOFOLLOW))\n'
+              printf '\t\treturn -EINVAL;\n'
+              printf '\tif (!may_mount())\n'
+              printf '\t\treturn -EPERM;\n'
+              printf '\tif (path->dentry != path->mnt->mnt_root)\n'
+              printf '\t\treturn -EINVAL;\n'
+              printf '\tif (!check_mnt(mnt))\n'
+              printf '\t\treturn -EINVAL;\n'
+              printf '\tif (mnt->mnt.mnt_flags & MNT_LOCKED)\n'
+              printf '\t\treturn -EINVAL;\n'
+              printf '\tif (flags & MNT_FORCE && !capable(CAP_SYS_ADMIN))\n'
+              printf '\t\treturn -EPERM;\n'
+              printf '\treturn 0;\n'
+              printf '}\n'
+              printf '\n'
+              printf 'int path_umount(struct path *path, int flags)\n'
+              printf '{\n'
+              printf '\tstruct mount *mnt = real_mount(path->mnt);\n'
+              printf '\tint ret;\n'
+              printf '\tret = can_umount_ksu(path, flags);\n'
+              printf '\tif (!ret)\n'
+              printf '\t\tret = do_umount(mnt, flags);\n'
+              printf '\tdput(path->dentry);\n'
+              printf '\tmntput_no_expire(mnt);\n'
+              printf '\treturn ret;\n'
+              printf '}\n'
+            } >> fs/namespace.c
             # Add forward declaration to fs/internal.h
             if [ -f fs/internal.h ] && ! grep -q "int path_umount" fs/internal.h; then
-              echo "" >> fs/internal.h
-              echo "/* KSU_NEXT: forward decl */" >> fs/internal.h
-              echo "int path_umount(struct path *path, int flags);" >> fs/internal.h
+              printf '\n/* KSU_NEXT: forward decl */\nint path_umount(struct path *path, int flags);\n' >> fs/internal.h
               echo "  ✅ fs/internal.h forward decl added"
             fi
             echo "  ✅ fs/namespace.c path_umount backport injected"
