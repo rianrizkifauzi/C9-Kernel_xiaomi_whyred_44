@@ -719,6 +719,25 @@ jobs:
             } >> "$KBUILD_FILE"
             
             echo "  ✅ KSU_VERSION forced to $FORCED_VERSION"
+            echo "FORCED_KSU_VERSION=$FORCED_VERSION" >> $GITHUB_ENV
+            
+            # ===== ALSO patch supercall.c: ksuver_override default =====
+            # Driver has `uint32_t ksuver_override = 0;` global.
+            # Zygisk loaders read this var via supercall protocol.
+            # Force default value to FORCED_VERSION instead of 0.
+            SUPERCALL_FILE="${KSU_DIR}/kernel/supercall/supercall.c"
+            if [ -f "$SUPERCALL_FILE" ]; then
+              if grep -q "uint32_t ksuver_override = 0;" "$SUPERCALL_FILE"; then
+                sed -i "s|uint32_t ksuver_override = 0;|uint32_t ksuver_override = $FORCED_VERSION;|" "$SUPERCALL_FILE"
+                echo "  ✅ ksuver_override default patched in supercall.c"
+                grep "uint32_t ksuver_override" "$SUPERCALL_FILE"
+              else
+                echo "  ⚠️  ksuver_override pattern not found in supercall.c"
+                grep -n "ksuver_override" "$SUPERCALL_FILE" | head -5
+              fi
+            else
+              echo "  ⚠️  supercall.c not found, skipping ksuver_override patch"
+            fi
           fi
 
       - name: Build kernel
