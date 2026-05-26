@@ -20,17 +20,17 @@ on:
         required: true
         default: 'auto'
       ksun_repo:
-        description: 'KernelSU implementation (rsuntk/KernelSU=non-GKI compatible | KernelSU-Next/KernelSU-Next=GKI only)'
+        description: 'KernelSU implementation (ThRE-Team/KernelSU-Next=v3.2.0 manager match | rsuntk/KernelSU=non-GKI legacy)'
         required: true
-        default: 'rsuntk/KernelSU'
+        default: 'ThRE-Team/KernelSU-Next'
       ksun_branch:
-        description: 'KernelSU tag/branch. Default "main" matched manager 32490 in Run #11. v1.0.5-80-legacy = old driver line ~12xxx (mismatch with 32xxx managers).'
+        description: 'KernelSU tag/branch. v3.2.0-legacy = matches Manager v3.2.0-spoofed CMD numbering for non-GKI 4.4.'
         required: true
-        default: 'main'
+        default: 'v3.2.0-legacy'
       ksun_commit:
-        description: 'Pin KSU to specific commit SHA (use "head" for latest). 25f7ffbe = Run #11 confirmed working snapshot.'
+        description: 'Pin KSU to specific commit SHA (use "head" for tag head). 8ef29164 = v3.2.0-legacy tag commit.'
         required: true
-        default: '25f7ffbe'
+        default: 'head'
       susfs_branch:
         description: 'SUSFS branch'
         required: true
@@ -682,7 +682,7 @@ jobs:
           fi
 
       - name: Force KSU_VERSION via Kbuild override (fix version=0 bug)
-        if: ${{ inputs.ksun_repo == 'KernelSU-Next/KernelSU-Next' }}
+        if: ${{ contains(inputs.ksun_repo, 'KernelSU-Next') }}
         working-directory: kernel_source
         run: |
           set -e
