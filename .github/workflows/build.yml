@@ -729,12 +729,25 @@ jobs:
       - name: Inject defconfig flags
         working-directory: kernel_source
         run: |
+          # Strip existing localversion-* files (st74, san, halfelf, etc) to prevent
+          # them appending to our CONFIG_LOCALVERSION
+          echo "=== Strip pre-existing localversion files ==="
+          ls -la localversion* 2>/dev/null || echo "  (none)"
+          rm -f localversion-*
+          echo "  After cleanup:"
+          ls -la localversion* 2>/dev/null || echo "  (clean)"
+          echo ""
+
           {
             echo ""
             echo "# === KernelSU ==="
             echo "CONFIG_KSU=y"
             echo "CONFIG_KSU_DEBUG=n"
             echo "CONFIG_OVERLAY_FS=y"
+            echo ""
+            echo "# === Custom kernel branding ==="
+            echo "CONFIG_LOCALVERSION=\"-C9-Whyred-KSUN-v1.0\""
+            echo "# CONFIG_LOCALVERSION_AUTO is not set"
           } >> "${DCFG_PATH}"
 
           if [ "${KSU_HOOK_MODE}" = "auto" ]; then
@@ -840,8 +853,8 @@ jobs:
         env:
           ARCH: arm64
           SUBARCH: arm64
-          KBUILD_BUILD_USER: builder
-          KBUILD_BUILD_HOST: github-actions
+          KBUILD_BUILD_USER: JorianPonomaref
+          KBUILD_BUILD_HOST: whyred-actions
         run: |
           set -eo pipefail
           export PATH="$GITHUB_WORKSPACE/toolchain/clang/bin:$PATH"
