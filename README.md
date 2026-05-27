@@ -5,6 +5,7 @@
 Automated GitHub Actions builder untuk **C9 Custom Kernel** — Linux 4.4.x untuk **Xiaomi Whyred** (Redmi Note 5 Pro / SDM636) dengan KernelSU-Next root integration.
 
 > **Looking for download?** Lihat repo release: **[C9-Kernel_releases](https://github.com/rianrizkifauzi/C9-Kernel_releases)**
+> **Version history?** Lihat **[CHANGELOG.md](CHANGELOG.md)**
 
 ---
 

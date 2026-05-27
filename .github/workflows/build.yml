@@ -966,20 +966,28 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: whyred-build-${{ github.run_number }}
-          name: C9 Kernel whyred KSUN #${{ github.run_number }}
+          name: C9 Kernel whyred KSUN v1.0 (build ${{ github.run_number }})
           repository: rianrizkifauzi/C9-Kernel_releases
           body: |
-            **C9 Custom Kernel for ${{ env.DEVICE_CODENAME }}**
-            - Builder: JorianPonomaref
-            - Device codename: `${{ env.DEVICE_CODENAME }}`
-            - Kernel source: `${{ inputs.kernel_repo }}@${{ inputs.kernel_branch }}` (${{ env.KERNEL_SHA }})
-            - Kernel version: `${{ env.KERNEL_VERSION }}`
-            - Defconfig: `${{ env.DCFG_NAME }}`
-            - KernelSU-Next: `${{ inputs.ksun_branch }}` @ `${{ env.KSUN_VERSION }}`
-            - Hooks: kucingoranye/kernel_patches manual hook + path_umount backport
+            **C9 Custom Kernel for Whyred (Redmi Note 5 Pro)**
+
+            | Field | Value |
+            |---|---|
+            | Builder | JorianPonomaref |
+            | Device | `${{ env.DEVICE_CODENAME }}` |
+            | Kernel | `${{ env.KERNEL_VERSION }}` |
+            | Defconfig | `${{ env.DCFG_NAME }}` |
+            | KernelSU-Next | `${{ inputs.ksun_branch }}` @ `${{ env.KSUN_VERSION }}` (forced 33129) |
+            | Source | `${{ inputs.kernel_repo }}@${{ inputs.kernel_branch }}` (`${{ env.KERNEL_SHA }}`) |
+            | SUSFS | ${{ inputs.enable_susfs == 'true' && 'enabled' || 'disabled' }} |
+
+            **Changelog:** see [CHANGELOG.md](https://github.com/rianrizkifauzi/C9-Kernel_xiaomi_whyred_44/blob/main/CHANGELOG.md)
+
+            **Build pipeline:** [Run #${{ github.run_number }}](https://github.com/rianrizkifauzi/C9-Kernel_xiaomi_whyred_44/actions/runs/${{ github.run_id }})
 
             ---
-            Built via: [C9-Kernel_xiaomi_whyred_44 #${{ github.run_number }}](https://github.com/rianrizkifauzi/C9-Kernel_xiaomi_whyred_44/actions/runs/${{ github.run_id }})
+
+            Flash via TWRP / OFOX. Backup boot partition before flashing.
           files: ${{ env.OUTZIP }}
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASES_TOKEN }}
