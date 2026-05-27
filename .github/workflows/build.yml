@@ -53,6 +53,14 @@ on:
         default: 'false'
         type: choice
         options: ['true', 'false']
+      kernel_codename:
+        description: 'Kernel codename (San-Kernel style branding, e.g. Genesis, Aurora, Phoenix)'
+        required: false
+        default: 'Genesis'
+      kernel_relver:
+        description: 'Kernel release version (San-Kernel style, e.g. R1.0, R1.1.101)'
+        required: false
+        default: 'R1.0'
 
 env:
   TZ: Asia/Jakarta
@@ -750,7 +758,7 @@ jobs:
             echo "CONFIG_OVERLAY_FS=y"
             echo ""
             echo "# === Custom kernel branding ==="
-            echo "CONFIG_LOCALVERSION=\"-C9-${DEVICE_CODENAME:-whyred}-KSUN-v1.0\""
+            echo "CONFIG_LOCALVERSION=\"-C9-${{ inputs.kernel_codename }}-KSUN-${{ inputs.kernel_relver }}\""
             echo "# CONFIG_LOCALVERSION_AUTO is not set"
           } >> "${DCFG_PATH}"
 
@@ -931,16 +939,24 @@ jobs:
             [ -f "$f" ] && cp "$f" AnyKernel3/ || true
           done
 
-          STAMP=$(date -u +%Y%m%d-%H%M)
-          # Format: C9-Kernel-<codename>-KSUN-<date>-<sha>.zip
-          # Codename derived from defconfig name (e.g. whyred_defconfig -> whyred)
+          # San-Kernel style naming: C9-Kernel-<Codename>-R<Ver>-<Device>-KSUN.zip
+          # Example: C9-Kernel-Genesis-R1.0-Whyred-KSUN.zip
           DEVICE_CODENAME=$(basename "${DCFG_NAME}" | sed 's|_defconfig$||; s|-perf_defconfig$||; s|-perf$||')
           echo "DEVICE_CODENAME=${DEVICE_CODENAME}" >> $GITHUB_ENV
-          ZIPNAME="C9-Kernel-${DEVICE_CODENAME}-KSUN"
+          # Capitalize first letter for device label (whyred -> Whyred)
+          DEVICE_LABEL=$(echo "${DEVICE_CODENAME}" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+          KERNEL_CODENAME="${{ inputs.kernel_codename }}"
+          KERNEL_RELVER="${{ inputs.kernel_relver }}"
+          KERNEL_CODENAME="${KERNEL_CODENAME:-Genesis}"
+          KERNEL_RELVER="${KERNEL_RELVER:-R1.0}"
+          ZIPNAME="C9-Kernel-${KERNEL_CODENAME}-${KERNEL_RELVER}-${DEVICE_LABEL}-KSUN"
           if [ "${{ inputs.enable_susfs }}" = "true" ]; then
             ZIPNAME="${ZIPNAME}-SUSFS"
           fi
-          ZIPNAME="${ZIPNAME}-v1.0-${STAMP}-${{ env.KERNEL_SHA }}.zip"
+          ZIPNAME="${ZIPNAME}.zip"
+          echo "KERNEL_CODENAME=${KERNEL_CODENAME}" >> $GITHUB_ENV
+          echo "KERNEL_RELVER=${KERNEL_RELVER}" >> $GITHUB_ENV
+          echo "DEVICE_LABEL=${DEVICE_LABEL}" >> $GITHUB_ENV
           echo "Output zip: ${ZIPNAME}"
 
           cd AnyKernel3
@@ -965,27 +981,34 @@ jobs:
         if: success() && env.OUTZIP != ''
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: whyred-build-${{ github.run_number }}
-          name: C9 Kernel whyred KSUN v1.0 (build ${{ github.run_number }})
+          token: ${{ secrets.RELEASES_TOKEN }}
+          tag_name: ${{ env.KERNEL_CODENAME }}-${{ env.KERNEL_RELVER }}-${{ env.DEVICE_CODENAME }}
+          name: C9-Kernel-${{ env.KERNEL_CODENAME }}-${{ env.KERNEL_RELVER }}-${{ env.DEVICE_LABEL }}-4.4
           repository: rianrizkifauzi/C9-Kernel_releases
           body: |
-            **C9 Custom Kernel for Whyred (Redmi Note 5 Pro)**
+            C9-Kernel-linux version-4.4
+            Codename: ${{ env.KERNEL_CODENAME }}
+            Type: Stable
 
-            | Field | Value |
-            |---|---|
-            | Builder | JorianPonomaref |
-            | Device | `${{ env.DEVICE_CODENAME }}` |
-            | Kernel | `${{ env.KERNEL_VERSION }}` |
-            | Defconfig | `${{ env.DCFG_NAME }}` |
-            | KernelSU-Next | `${{ inputs.ksun_branch }}` @ `${{ env.KSUN_VERSION }}` (forced 33129) |
-            | Source | `${{ inputs.kernel_repo }}@${{ inputs.kernel_branch }}` (`${{ env.KERNEL_SHA }}`) |
-            | SUSFS | ${{ inputs.enable_susfs == 'true' && 'enabled' || 'disabled' }} |
+            Changelog ${{ env.KERNEL_RELVER }} :
 
-            **Changelog:** see [CHANGELOG.md](https://github.com/rianrizkifauzi/C9-Kernel_xiaomi_whyred_44/blob/main/CHANGELOG.md)
+            _• Compiled using Proton Clang (kdrag0n) latest._
+            _• Bump to Linux ${{ env.KERNEL_VERSION }} (CIP-LTS)._
+            _• Base on `${{ inputs.kernel_repo }}@${{ inputs.kernel_branch }}` (`${{ env.KERNEL_SHA }}`)._
+            _• Integrate KernelSU-Next (`${{ inputs.ksun_branch }}` @ `${{ env.KSUN_VERSION }}`, forced KSU_VERSION 33129)._
+            _• Apply manual hooks from kucingoranye/kernel_patches (execveat, stat, faccessat, vfs_read, sys_reboot, selinux NNP bypass)._
+            _• Backport `path_umount` from kernel 5.10.9 by backslashxx (KSUN driver requirement)._
+            _• AnyKernel3 flashable zip with C9 banner._
+            _• Build identity: JorianPonomaref@whyred-actions._
+            _• SUSFS: ${{ inputs.enable_susfs == 'true' && 'enabled' || 'disabled' }}._
 
-            **Build pipeline:** [Run #${{ github.run_number }}](https://github.com/rianrizkifauzi/C9-Kernel_xiaomi_whyred_44/actions/runs/${{ github.run_id }})
+            Tested on:
+            _• Xiaomi Whyred (Redmi Note 5 Pro / SDM636)._
+            _• KernelSU-Next Manager v3.2.0-spoofed (33129) → Working._
+            _• Zygisk Next 1.3.4-746 → daemon running, both zygote injected._
 
-            ---
+            Full changelog : [CHANGELOG.md](https://github.com/rianrizkifauzi/C9-Kernel_xiaomi_whyred_44/blob/main/CHANGELOG.md)
+            Build pipeline : [Run #${{ github.run_number }}](https://github.com/rianrizkifauzi/C9-Kernel_xiaomi_whyred_44/actions/runs/${{ github.run_id }})
 
             Flash via TWRP / OFOX. Backup boot partition before flashing.
           files: ${{ env.OUTZIP }}

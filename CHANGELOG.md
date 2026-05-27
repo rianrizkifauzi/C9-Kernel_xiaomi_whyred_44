@@ -1,63 +1,38 @@
-# Changelog
+C9-Kernel-linux version-4.4
+Codename: Genesis
+Type: Stable
 
-All notable changes to **C9 Kernel for Whyred (4.4)** will be documented here.
+Changelog R1.0 :
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+_• First public release of C9-Kernel for Xiaomi Whyred (Redmi Note 5 Pro)._
+_• Compiled using Proton Clang (kdrag0n) latest._
+_• Bump version to Linux 4.4.302 (CIP-LTS)._
+_• Base on android-4.4-stable from user-why-red/android_kernel_xiaomi_sdm660_44 (commit e0183e3c)._
+_• Integrate KernelSU-Next legacy as non-GKI root solution._
+_• Force KSU_VERSION to 33129 to match Manager v3.2.0-spoofed bundled ksud._
+_• Apply manual hooks from kucingoranye/kernel_patches:_
+_  → ksu_handle_execveat in fs/exec.c (su detection on exec syscall)._
+_  → ksu_handle_stat in fs/stat.c (vfs_statx hook)._
+_  → ksu_handle_faccessat in fs/open.c (path access intercept)._
+_  → ksu_handle_vfs_read in fs/read_write.c (vfs_read intercept)._
+_  → ksu_handle_sys_reboot in kernel/reboot.c (KSUN driver requirement)._
+_  → is_ksu_transition in security/selinux/hooks.c (SELinux NNP/nosuid bypass for ksud)._
+_• Backport path_umount from kernel 5.10.9 by backslashxx (required by KSUN driver on 4.4)._
+_• Add C9 branding: CONFIG_LOCALVERSION="-C9-Genesis-KSUN-v1.0"._
+_• Build identity: JorianPonomaref@whyred-actions._
+_• AnyKernel3 flashable zip with custom banner._
+_• Tested working: KernelSU-Next Manager v3.2.0 (33129), Zygisk Next 1.3.4-746, module installation via Manager normal._
 
----
+Known Issues :
 
-## [v1.0] — 2026-05-27
+_• Shamiko module not supported (deprecated for KSU; use Zygisk Next built-in DenyList instead)._
+_• Volume-key safe-mode trigger not active (input.c hook skipped due to context drift)._
+_• SUSFS not enabled in this build._
 
-First public release.
+Credits :
 
-### Added
-- Linux kernel **4.4.302** base (CIP-LTS via [San-Kernel](https://github.com/user-why-red/android_kernel_xiaomi_sdm660_44) `android-4.4-stable @ e0183e3c`)
-- **KernelSU-Next legacy branch** integration as non-GKI root solution
-- **Manual hooks** (7 hooks) from [kucingoranye/kernel_patches](https://github.com/kucingoranye/kernel_patches):
-  - `ksu_handle_execveat` (fs/exec.c) — exec syscall intercept for su detection
-  - `ksu_handle_stat` (fs/stat.c) — vfs_statx hook
-  - `ksu_handle_faccessat` (fs/open.c) — faccessat path access hook
-  - `ksu_handle_vfs_read` (fs/read_write.c) — vfs_read intercept
-  - `ksu_handle_sys_reboot` (kernel/reboot.c) — KSUN driver requirement
-  - `is_ksu_transition` (security/selinux/hooks.c) — SELinux NNP/nosuid bypass for ksud
-  - `ksu_handle_input_handle_event` (drivers/input/input.c) — _skipped, context drift_
-- **path_umount backport** from kernel 5.10.9 ([backslashxx](https://github.com/kylieeXD/android_kernel_xiaomi_rosemary/commit/03dfb735ac04649b768a77a03acf88cd4528c855))
-- **AnyKernel3** flashable zip with custom banner
-- **C9 branding**: `CONFIG_LOCALVERSION="-C9-whyred-KSUN-v1.0"`, build identity `JorianPonomaref@whyred-actions`
-- **Forced KSU_VERSION = 33129** to match Manager v3.2.0-spoofed bundled ksud (fixes Shamiko / strict-check module abort)
-
-### Tested
-- Boot: ✅ stable on Whyred + qassa ROM Android 10
-- KernelSU-Next Manager v3.2.0-spoofed: ✅ Working (33129)
-- Zygisk Next 1.3.4-746: ✅ install via Manager normal, daemon running, both zygote (32+64) injected
-- Modules install (Magisk-style): ✅ via Manager normal
-- TWRP / OrangeFox flashable
-
-### Known issues
-- Shamiko module: ❌ aborts with "version abnormal" — _Shamiko itself deprecated for KSU; use Zygisk Next built-in denylist instead_
-- Volume-key safe-mode trigger: ❌ not active (input.c hook skipped)
-- SUSFS: ❌ not enabled in this build
-
-### Build environment
-- GitHub Actions Ubuntu 22.04
-- Toolchain: [Proton Clang](https://github.com/kdrag0n/proton-clang) (latest)
-- Compile flags: Clang+GNU-LD hybrid for 4.4 compat
-
-### Credits
-- Base kernel: [user-why-red/android_kernel_xiaomi_sdm660_44](https://github.com/user-why-red/android_kernel_xiaomi_sdm660_44)
-- KSU driver: [ThRE-Team/KernelSU-Next](https://github.com/ThRE-Team/KernelSU-Next) `legacy` branch (synced with [upstream](https://github.com/KernelSU-Next/KernelSU-Next))
-- Hook patches: [kucingoranye/kernel_patches](https://github.com/kucingoranye/kernel_patches)
-
----
-
-## [Unreleased]
-
-Future plan:
-- SUSFS integration (kernel-4.4 branch)
-- Multi-device support (lavender, tulip)
-- Performance tweaks
-
----
-
-> Built by **JorianPonomaref**. Format: [Keep a Changelog](https://keepachangelog.com/).
+_• Base kernel by user-why-red (San-Kernel team)._
+_• KernelSU-Next driver by ThRE-Team & upstream KernelSU-Next/KernelSU-Next._
+_• Hook patches by kucingoranye._
+_• Zygisk Next by 5ec1cff & Nullptr._
+_• AnyKernel3 by osm0sis._

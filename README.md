@@ -4,8 +4,8 @@
 
 Automated GitHub Actions builder untuk **C9 Custom Kernel** — Linux 4.4.x untuk **Xiaomi Whyred** (Redmi Note 5 Pro / SDM636) dengan KernelSU-Next root integration.
 
-> **Looking for download?** Lihat repo release: **[C9-Kernel_releases](https://github.com/rianrizkifauzi/C9-Kernel_releases)**
-> **Version history?** Lihat **[CHANGELOG.md](CHANGELOG.md)**
+> **Download:** [C9-Kernel_releases](https://github.com/rianrizkifauzi/C9-Kernel_releases)
+> **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
@@ -13,6 +13,8 @@ Automated GitHub Actions builder untuk **C9 Custom Kernel** — Linux 4.4.x untu
 
 | Field | Value |
 |---|---|
+| Codename | `Genesis` |
+| Version | `R1.0` |
 | Device | Xiaomi Whyred (Redmi Note 5 Pro) |
 | SoC | Qualcomm SDM636 |
 | Kernel | Linux 4.4.302 (CIP-LTS) |
@@ -26,7 +28,7 @@ Automated GitHub Actions builder untuk **C9 Custom Kernel** — Linux 4.4.x untu
 
 ## Hook integration
 
-7 manual hooks injected via `patch -p1`:
+6 manual hooks injected via `patch -p1`:
 
 | File | Hook | Purpose |
 |---|---|---|
@@ -36,7 +38,6 @@ Automated GitHub Actions builder untuk **C9 Custom Kernel** — Linux 4.4.x untu
 | `fs/read_write.c` | `ksu_handle_vfs_read` | vfs_read hook |
 | `kernel/reboot.c` | `ksu_handle_sys_reboot` | sys_reboot hook (KSUN requirement) |
 | `security/selinux/hooks.c` | `is_ksu_transition` | NNP/nosuid bypass for ksud spawn |
-| `drivers/input/input.c` | (skipped — context conflict) | Volume-key safe-mode trigger |
 
 Plus `path_umount` backport from kernel 5.10.9 ([backslashxx](https://github.com/kylieeXD/android_kernel_xiaomi_rosemary/commit/03dfb735ac04649b768a77a03acf88cd4528c855)) → required by KSUN driver on 4.4.
 
@@ -64,14 +65,19 @@ Plus `path_umount` backport from kernel 5.10.9 ([backslashxx](https://github.com
 | `ksun_branch` | `legacy` | KSU branch |
 | `hook_strategy` | `kucingoranye_patch` | Hook injection method |
 | `enable_susfs` | `false` | Enable SUSFS patches |
+| `kernel_codename` | `Genesis` | San-style codename branding |
+| `kernel_relver` | `R1.0` | San-style release version |
 
 ---
 
-## Output naming
+## Output naming (San-Kernel style)
 
-Format zip: `C9-Kernel-<codename>-KSUN-v1.0-<YYYYMMDD-HHMM>-<sha>.zip`
+Format zip: `C9-Kernel-<Codename>-<RelVer>-<DeviceLabel>-KSUN.zip`
 
-Example: `C9-Kernel-whyred-KSUN-v1.0-20260527-0352-e0183e3c0.zip`
+Example: `C9-Kernel-Genesis-R1.0-Whyred-KSUN.zip`
+
+Release tag: `<codename>-<relver>-<device>` (e.g. `Genesis-R1.0-whyred`)
+Release name: `C9-Kernel-<Codename>-<RelVer>-<DeviceLabel>-4.4`
 
 ---
 
