@@ -248,63 +248,65 @@ jobs:
             echo "  ✅ fs/stat.c patched to 3-arg signature"
           fi
 
-      - name: Apply kucingoranye/manual-hook-rksu-ksun patch (via curl + git apply)
+      - name: Apply kucingoranye/kernel_patches (manual_hook + path_umount backport)
         if: ${{ inputs.hook_strategy == 'kucingoranye_patch' }}
         working-directory: kernel_source
         run: |
           set -e
-          echo "=== Strategy: apply kucingoranye manual-hook patch (.patch file) ==="
-          echo "Source: https://github.com/kucingoranye/android_kernel_xiaomi_sdm660_44/compare/android-4.4-stable...manual-hook-rksu-ksun.patch"
-          echo "Author: kucingoranye <ardiantow04@gmail.com> + fc5b87cf <rissu.ntk@gmail.com>"
+          echo "=== Strategy: apply kucingoranye/kernel_patches ==="
+          echo "Source: https://github.com/kucingoranye/kernel_patches"
           echo ""
 
-          # Download the patch
-          PATCH_URL="https://github.com/kucingoranye/android_kernel_xiaomi_sdm660_44/compare/android-4.4-stable...manual-hook-rksu-ksun.patch"
-          PATCH_FILE="/tmp/kucingoranye-hook.patch"
-          curl -sSL "$PATCH_URL" -o "$PATCH_FILE"
-          ls -la "$PATCH_FILE"
-          echo "Patch size: $(wc -l < $PATCH_FILE) lines"
+          BASE_URL="https://raw.githubusercontent.com/kucingoranye/kernel_patches/main"
+          HOOK_PATCH_URL="${BASE_URL}/manual_hook-rksu-ksun/kernel-4.4_4.9.patch"
+          UMOUNT_PATCH_URL="${BASE_URL}/path_umount/backport-path_umount.patch"
+
+          # Download patches
+          curl -sSL "$HOOK_PATCH_URL" -o /tmp/manual-hook.patch
+          curl -sSL "$UMOUNT_PATCH_URL" -o /tmp/path_umount.patch
+
+          echo "manual-hook.patch:"
+          ls -la /tmp/manual-hook.patch
+          head -5 /tmp/manual-hook.patch
+          echo ""
+          echo "path_umount.patch:"
+          ls -la /tmp/path_umount.patch
+          head -5 /tmp/path_umount.patch
           echo ""
 
-          # The patch contains 2 commits and includes some .orig files we don't need.
-          # Filter the patch to only apply changes to the actual kernel files (skip .orig).
-          # We use 'patch' instead of 'git apply' because patch is more lenient with
-          # line-ending differences and minor context drift.
-          echo "=== Apply patch (filtered: skip .orig files) ==="
-
-          # Strategy: pre-process patch to drop hunks for *.orig files that don't exist in our tree
-          # Use awk to filter out diff sections targeting .orig files
-          awk '
-          BEGIN { skip = 0 }
-          /^diff --git/ {
-            if ($0 ~ /\.orig "?$|\.orig"? b\//) {
-              skip = 1
-            } else {
-              skip = 0
-            }
-          }
-          !skip { print }
-          ' "$PATCH_FILE" > /tmp/kucingoranye-hook-filtered.patch
-
-          echo "Filtered patch: $(wc -l < /tmp/kucingoranye-hook-filtered.patch) lines"
-          echo ""
-
-          # Apply filtered patch with -p1 (patch file uses a/ b/ prefix from git format-patch)
-          # Use --fuzz=3 to tolerate minor context drift, --forward to skip already-applied
-          if patch -p1 --forward --fuzz=3 --no-backup-if-mismatch < /tmp/kucingoranye-hook-filtered.patch; then
-            echo "✅ Patch applied successfully"
+          # Apply hook patch
+          echo "=== Apply manual hook patch ==="
+          if patch -p1 --forward --fuzz=3 --no-backup-if-mismatch < /tmp/manual-hook.patch; then
+            echo "✅ Manual hook patch applied"
           else
-            echo "::warning::Patch had rejects, listing them:"
-            find . -name "*.rej" 2>/dev/null | head -20
-            echo ""
-            echo "::warning::Continuing — partial hook may still work if execveat hook landed"
+            echo "::warning::Manual hook patch had rejects:"
+            find . -name "*.rej" 2>/dev/null | head -10
+            for f in $(find . -name "*.rej" 2>/dev/null); do
+              echo "--- $f ---"
+              cat "$f"
+            done
+            echo "::error::Hook patch rejected - cannot proceed"
+            exit 1
+          fi
+          echo ""
+
+          # Apply path_umount backport
+          echo "=== Apply path_umount backport ==="
+          if patch -p1 --forward --fuzz=3 --no-backup-if-mismatch < /tmp/path_umount.patch; then
+            echo "✅ path_umount backport applied"
+          else
+            echo "::warning::path_umount backport had rejects (might already be in tree):"
+            find . -name "*.rej" 2>/dev/null | head -5
+            # Don't exit - Kbuild has fallback inject for this
           fi
 
           echo ""
           echo "=== Verify hooks landed ==="
           for f in fs/exec.c fs/stat.c fs/open.c fs/read_write.c kernel/reboot.c drivers/input/input.c security/selinux/hooks.c; do
-            n=$(grep -c "ksu_handle_\|is_ksu_transition\|CONFIG_KSU" "$f" 2>/dev/null || echo 0)
-            echo "  $f: $n KSU refs"
+            if [ -f "$f" ]; then
+              n=$(grep -c "ksu_handle_\|is_ksu_transition\|CONFIG_KSU" "$f" 2>/dev/null || echo 0)
+              echo "  $f: $n KSU refs"
+            fi
           done
 
           echo ""
@@ -312,8 +314,14 @@ jobs:
           if grep -q "^int path_umount" fs/namespace.c; then
             echo "  ✅ path_umount injected"
           else
-            echo "  ⚠️  path_umount NOT FOUND — Kbuild fallback will inject"
+            echo "  ⚠️  path_umount NOT FOUND — Kbuild fallback will try"
           fi
+
+          echo ""
+          echo "=== Defconfig CONFIG_KSU check ==="
+          # Patch should have already added these to whyred_defconfig
+          DCFG_PATH="${DCFG_PATH:-arch/arm64/configs/whyred_defconfig}"
+          grep -E "CONFIG_KSU|CONFIG_KPROBES" "$DCFG_PATH" || echo "  (no KSU/KPROBES lines yet)"
 
       - name: Inject MINIMAL execveat hook into clean kernel source
         if: ${{ env.KSU_HOOK_MODE == 'minimal_inject' && inputs.ksun_repo == 'rsuntk/KernelSU' && inputs.hook_strategy == 'minimal' }}
