@@ -820,8 +820,7 @@ jobs:
             # If kernel KSU_VERSION != ksud version, Shamiko aborts with
             # "KernelSU version abnormal".
             FORCED_VERSION=33129
-            cd ..
-            
+
             echo "  Forcing KSU_VERSION=$FORCED_VERSION (tag=$KSU_TAG)"
             echo "  Appending overrides to $KBUILD_FILE"
             
