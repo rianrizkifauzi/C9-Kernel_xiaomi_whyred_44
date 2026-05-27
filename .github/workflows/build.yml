@@ -814,7 +814,7 @@ jobs:
           fi
 
       - name: Force KSU_VERSION via Kbuild override (fix version=0 bug)
-        if: ${{ contains(inputs.ksun_repo, 'KernelSU-Next') }}
+        if: ${{ contains(inputs.ksun_repo, 'KernelSU-Next') && inputs.ksun_branch != 'next' }}
         working-directory: kernel_source
         run: |
           set -e
@@ -1006,6 +1006,9 @@ jobs:
           KERNEL_CODENAME="${KERNEL_CODENAME:-Genesis}"
           KERNEL_RELVER="${KERNEL_RELVER:-R1.0}"
           ZIPNAME="C9-Kernel-${KERNEL_CODENAME}-${KERNEL_RELVER}-${DEVICE_LABEL}-KSUN"
+          if [ "${{ inputs.ksun_branch }}" = "next" ]; then
+            ZIPNAME="${ZIPNAME}-Next"
+          fi
           if [ "${{ inputs.enable_susfs }}" = "true" ]; then
             ZIPNAME="${ZIPNAME}-SUSFS"
           fi
@@ -1042,7 +1045,7 @@ jobs:
           retention-days: 30
 
       - name: Create Release (cross-repo to C9-Kernel_releases)
-        if: success() && env.OUTZIP != '' && inputs.enable_lto == 'off' && inputs.enable_polly == 'false'
+        if: success() && env.OUTZIP != '' && inputs.enable_lto == 'off' && inputs.enable_polly == 'false' && inputs.ksun_branch != 'next'
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.RELEASES_TOKEN }}
