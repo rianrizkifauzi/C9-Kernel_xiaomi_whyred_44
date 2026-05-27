@@ -190,6 +190,10 @@ jobs:
           echo "Using defconfig: ${DCFG_NAME}"
           echo "DCFG_PATH=${DCFG_PATH}" >> $GITHUB_ENV
           echo "DCFG_NAME=${DCFG_NAME}" >> $GITHUB_ENV
+          # Derive device codename from defconfig (e.g. whyred_defconfig -> whyred)
+          DEVICE_CODENAME=$(basename "${DCFG_NAME}" | sed 's|_defconfig$||; s|-perf_defconfig$||; s|-perf$||; s|^vendor/||')
+          echo "Device codename: ${DEVICE_CODENAME}"
+          echo "DEVICE_CODENAME=${DEVICE_CODENAME}" >> $GITHUB_ENV
 
       - name: Clone toolchain (Proton Clang)
         run: |
@@ -746,7 +750,7 @@ jobs:
             echo "CONFIG_OVERLAY_FS=y"
             echo ""
             echo "# === Custom kernel branding ==="
-            echo "CONFIG_LOCALVERSION=\"-C9-Whyred-KSUN-v1.0\""
+            echo "CONFIG_LOCALVERSION=\"-C9-${DEVICE_CODENAME:-whyred}-KSUN-v1.0\""
             echo "# CONFIG_LOCALVERSION_AUTO is not set"
           } >> "${DCFG_PATH}"
 
@@ -929,11 +933,16 @@ jobs:
           done
 
           STAMP=$(date -u +%Y%m%d-%H%M)
-          ZIPNAME="C9-Kernel-KSUN"
+          # Format: C9-Kernel-<codename>-KSUN-<date>-<sha>.zip
+          # Codename derived from defconfig name (e.g. whyred_defconfig -> whyred)
+          DEVICE_CODENAME=$(basename "${DCFG_NAME}" | sed 's|_defconfig$||; s|-perf_defconfig$||; s|-perf$||')
+          echo "DEVICE_CODENAME=${DEVICE_CODENAME}" >> $GITHUB_ENV
+          ZIPNAME="C9-Kernel-${DEVICE_CODENAME}-KSUN"
           if [ "${{ inputs.enable_susfs }}" = "true" ]; then
             ZIPNAME="${ZIPNAME}-SUSFS"
           fi
-          ZIPNAME="${ZIPNAME}-${STAMP}-${{ env.KERNEL_SHA }}.zip"
+          ZIPNAME="${ZIPNAME}-v1.0-${STAMP}-${{ env.KERNEL_SHA }}.zip"
+          echo "Output zip: ${ZIPNAME}"
 
           cd AnyKernel3
           zip -r9 "../${ZIPNAME}" . -x ".git*" -x "README.md"
@@ -945,7 +954,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: C9-Kernel-KSUN-${{ github.run_number }}
+          name: C9-Kernel-${{ env.DEVICE_CODENAME || 'unknown' }}-KSUN-${{ github.run_number }}
           path: |
             ${{ env.OUTZIP }}
             kernel_source/build.log
@@ -958,10 +967,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          name: C9 Kernel KSUN #${{ github.run_number }}
+          name: C9 Kernel ${{ env.DEVICE_CODENAME }} KSUN #${{ github.run_number }}
           body: |
-            **C9 Custom Kernel for Whyred**
+            **C9 Custom Kernel for ${{ env.DEVICE_CODENAME }}**
             - Builder: JorianPonomaref
+            - Device codename: `${{ env.DEVICE_CODENAME }}`
             - Kernel source: `${{ inputs.kernel_repo }}@${{ inputs.kernel_branch }}` (${{ env.KERNEL_SHA }})
             - Kernel version: `${{ env.KERNEL_VERSION }}`
             - Defconfig: `${{ env.DCFG_NAME }}`
