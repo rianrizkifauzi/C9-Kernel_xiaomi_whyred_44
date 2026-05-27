@@ -287,77 +287,26 @@ jobs:
               echo ""
             done
 
-            # Determine if rejects are critical (exec.c is critical, input.c is not)
+            # Critical files: exec.c, stat.c, open.c, read_write.c, reboot.c, selinux/hooks.c
+            # Non-critical: drivers/input/input.c (volume-key safe-mode trigger only)
             CRITICAL_REJECT=0
-            if echo "$REJECTS" | grep -qE "fs/exec\.c\.rej$"; then
-              echo "::error::CRITICAL: fs/exec.c hook rejected — cannot proceed"
-              CRITICAL_REJECT=1
-            fi
+            for crit in "fs/exec.c.rej" "fs/stat.c.rej" "fs/open.c.rej" "fs/read_write.c.rej" "kernel/reboot.c.rej" "security/selinux/hooks.c.rej"; do
+              if echo "$REJECTS" | grep -q "$crit"; then
+                echo "::error::CRITICAL reject: $crit"
+                CRITICAL_REJECT=1
+              fi
+            done
 
             if [ "$CRITICAL_REJECT" -eq 1 ]; then
+              echo "::error::Cannot proceed with critical rejects"
               exit 1
             fi
 
-            echo "::warning::Non-critical rejects only — proceeding"
-            # Try to manually inject input.c hook if that was the only rejected file
-            if echo "$REJECTS" | grep -qE "drivers/input/input\.c\.rej$" && [ ! -e drivers/input/input.c.bak.injected ]; then
-              echo "=== Manual fallback: inject input.c hook ==="
-              cp drivers/input/input.c drivers/input/input.c.bak.injected
-
-              # Inject extern decls before input_handle_event() function
-              # And inject hook call inside input_handle_event() body after disposition assignment
-              python3 -c '
-import re, sys
-src = open("drivers/input/input.c").read()
-
-# 1. Add extern decls before "static void input_handle_event"
-ext = """
-#ifdef CONFIG_KSU
-extern bool ksu_input_hook __read_mostly;
-extern int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value);
-#endif
-"""
-m = re.search(r"^static void input_handle_event\(struct input_dev \*dev,",
-              src, re.MULTILINE)
-if not m:
-    print("ERROR: input_handle_event signature not found", file=sys.stderr)
-    sys.exit(2)
-src = src[:m.start()] + ext + "\n" + src[m.start():]
-
-# 2. Inject hook call after the disposition = ... line inside the function body
-# Find: pattern is "<INDENT>disposition = input_get_disposition(...);" inside the func
-# Then insert hook call right after that line
-hook = """
-#ifdef CONFIG_KSU
-\tif (unlikely(ksu_input_hook))
-\t\tksu_handle_input_handle_event(&type, &code, &value);
-#endif
-"""
-# Find the disposition line in the function body
-m = re.search(r"(\n\tdisposition = input_get_disposition\(dev, type, code, &value\);\n)",
-              src)
-if m:
-    src = src[:m.end()] + hook + src[m.end():]
-else:
-    # Try with leading int
-    m = re.search(r"(\n\tint disposition = input_get_disposition\(dev, type, code, &value\);\n)",
-                  src)
-    if m:
-        src = src[:m.end()] + hook + src[m.end():]
-    else:
-        print("WARN: disposition line pattern not matched, skipping hook call inject", file=sys.stderr)
-
-open("drivers/input/input.c","w").write(src)
-print("OK: input.c manual inject done")
-'
-
-              if grep -q "ksu_handle_input_handle_event" drivers/input/input.c; then
-                echo "  ✅ input.c hook manually injected"
-                rm -f drivers/input/input.c.rej
-              else
-                echo "  ⚠️  input.c manual inject failed — continuing without it (volume-key safe-mode trigger disabled)"
-              fi
-            fi
+            echo "::warning::Only non-critical input.c reject — proceeding without input hook"
+            echo "Note: ksu_input_hook (volume-key safe-mode trigger) will NOT work on this build"
+            # clean rejects to keep tree tidy
+            find . -name "*.rej" -delete 2>/dev/null
+            find . -name "*.orig" -delete 2>/dev/null
           fi
           echo ""
 
