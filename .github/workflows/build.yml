@@ -42,11 +42,11 @@ on:
         type: choice
         options: ['true', 'false']
       hook_strategy:
-        description: 'Hook injection strategy: minimal (1 hook), full (5 hooks all rsuntk modern), none (use existing)'
+        description: 'Hook strategy: kucingoranye_patch (apply .patch file via git apply, RECOMMENDED), full (5 hooks awk inject), minimal (1 hook), none'
         required: true
-        default: 'full'
+        default: 'kucingoranye_patch'
         type: choice
-        options: ['minimal', 'full', 'none']
+        options: ['kucingoranye_patch', 'minimal', 'full', 'none']
       skip_sig_fix:
         description: 'Skip 3-arg signature fix on ksu-patches branch (set true if branch already synced with rsuntk modern)'
         required: false
@@ -246,6 +246,73 @@ jobs:
             sed -i 's|extern int ksu_handle_stat(int \*dfd, const char __user \*\*filename_user);|extern int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags);|' fs/stat.c
             sed -i 's|ksu_handle_stat(&dfd, &filename);|ksu_handle_stat(\&dfd, \&filename, NULL);|' fs/stat.c
             echo "  ✅ fs/stat.c patched to 3-arg signature"
+          fi
+
+      - name: Apply kucingoranye/manual-hook-rksu-ksun patch (via curl + git apply)
+        if: ${{ inputs.hook_strategy == 'kucingoranye_patch' }}
+        working-directory: kernel_source
+        run: |
+          set -e
+          echo "=== Strategy: apply kucingoranye manual-hook patch (.patch file) ==="
+          echo "Source: https://github.com/kucingoranye/android_kernel_xiaomi_sdm660_44/compare/android-4.4-stable...manual-hook-rksu-ksun.patch"
+          echo "Author: kucingoranye <ardiantow04@gmail.com> + fc5b87cf <rissu.ntk@gmail.com>"
+          echo ""
+
+          # Download the patch
+          PATCH_URL="https://github.com/kucingoranye/android_kernel_xiaomi_sdm660_44/compare/android-4.4-stable...manual-hook-rksu-ksun.patch"
+          PATCH_FILE="/tmp/kucingoranye-hook.patch"
+          curl -sSL "$PATCH_URL" -o "$PATCH_FILE"
+          ls -la "$PATCH_FILE"
+          echo "Patch size: $(wc -l < $PATCH_FILE) lines"
+          echo ""
+
+          # The patch contains 2 commits and includes some .orig files we don't need.
+          # Filter the patch to only apply changes to the actual kernel files (skip .orig).
+          # We use 'patch' instead of 'git apply' because patch is more lenient with
+          # line-ending differences and minor context drift.
+          echo "=== Apply patch (filtered: skip .orig files) ==="
+
+          # Strategy: pre-process patch to drop hunks for *.orig files that don't exist in our tree
+          # Use awk to filter out diff sections targeting .orig files
+          awk '
+          BEGIN { skip = 0 }
+          /^diff --git/ {
+            if ($0 ~ /\.orig "?$|\.orig"? b\//) {
+              skip = 1
+            } else {
+              skip = 0
+            }
+          }
+          !skip { print }
+          ' "$PATCH_FILE" > /tmp/kucingoranye-hook-filtered.patch
+
+          echo "Filtered patch: $(wc -l < /tmp/kucingoranye-hook-filtered.patch) lines"
+          echo ""
+
+          # Apply filtered patch with -p1 (patch file uses a/ b/ prefix from git format-patch)
+          # Use --fuzz=3 to tolerate minor context drift, --forward to skip already-applied
+          if patch -p1 --forward --fuzz=3 --no-backup-if-mismatch < /tmp/kucingoranye-hook-filtered.patch; then
+            echo "✅ Patch applied successfully"
+          else
+            echo "::warning::Patch had rejects, listing them:"
+            find . -name "*.rej" 2>/dev/null | head -20
+            echo ""
+            echo "::warning::Continuing — partial hook may still work if execveat hook landed"
+          fi
+
+          echo ""
+          echo "=== Verify hooks landed ==="
+          for f in fs/exec.c fs/stat.c fs/open.c fs/read_write.c kernel/reboot.c drivers/input/input.c security/selinux/hooks.c; do
+            n=$(grep -c "ksu_handle_\|is_ksu_transition\|CONFIG_KSU" "$f" 2>/dev/null || echo 0)
+            echo "  $f: $n KSU refs"
+          done
+
+          echo ""
+          echo "=== fs/namespace.c path_umount check ==="
+          if grep -q "^int path_umount" fs/namespace.c; then
+            echo "  ✅ path_umount injected"
+          else
+            echo "  ⚠️  path_umount NOT FOUND — Kbuild fallback will inject"
           fi
 
       - name: Inject MINIMAL execveat hook into clean kernel source
