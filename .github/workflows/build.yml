@@ -961,12 +961,13 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
 
-      - name: Create Release
+      - name: Create Release (cross-repo to C9-Kernel_releases)
         if: success() && env.OUTZIP != ''
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-${{ github.run_number }}
-          name: C9 Kernel ${{ env.DEVICE_CODENAME }} KSUN #${{ github.run_number }}
+          tag_name: whyred-build-${{ github.run_number }}
+          name: C9 Kernel whyred KSUN #${{ github.run_number }}
+          repository: rianrizkifauzi/C9-Kernel_releases
           body: |
             **C9 Custom Kernel for ${{ env.DEVICE_CODENAME }}**
             - Builder: JorianPonomaref
@@ -976,6 +977,9 @@ jobs:
             - Defconfig: `${{ env.DCFG_NAME }}`
             - KernelSU-Next: `${{ inputs.ksun_branch }}` @ `${{ env.KSUN_VERSION }}`
             - Hooks: kucingoranye/kernel_patches manual hook + path_umount backport
+
+            ---
+            Built via: [C9-Kernel_xiaomi_whyred_44 #${{ github.run_number }}](https://github.com/rianrizkifauzi/C9-Kernel_xiaomi_whyred_44/actions/runs/${{ github.run_id }})
           files: ${{ env.OUTZIP }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASES_TOKEN }}
