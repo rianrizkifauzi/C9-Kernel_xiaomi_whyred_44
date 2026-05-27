@@ -1,4 +1,4 @@
-name: Build Whyred Kernel (KSUN + SUSFS)
+name: Build C9 Kernel KSUN
 
 on:
   workflow_dispatch:
@@ -809,8 +809,13 @@ jobs:
             cd "${KSU_DIR}"
             KSU_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v3.2.0-legacy")
             KSU_COMMIT_COUNT=$(git rev-list --count HEAD 2>/dev/null || echo "1000")
-            # Use KSUN-Next formula: 30000 + commit_count + 150
-            FORCED_VERSION=$((30000 + KSU_COMMIT_COUNT + 150))
+            cd ..
+
+            # NOTE: Manager v3.2.0-spoofed bundles ksud version 33129.
+            # We MUST match this to make Shamiko (and other strict modules) accept.
+            # If kernel KSU_VERSION != ksud version, Shamiko aborts with
+            # "KernelSU version abnormal".
+            FORCED_VERSION=33129
             cd ..
             
             echo "  Forcing KSU_VERSION=$FORCED_VERSION (tag=$KSU_TAG)"
@@ -924,9 +929,9 @@ jobs:
           done
 
           STAMP=$(date -u +%Y%m%d-%H%M)
-          ZIPNAME="whyred-ksun-${{ env.KSUN_VERSION }}"
+          ZIPNAME="C9-Kernel-KSUN"
           if [ "${{ inputs.enable_susfs }}" = "true" ]; then
-            ZIPNAME="${ZIPNAME}-susfs"
+            ZIPNAME="${ZIPNAME}-SUSFS"
           fi
           ZIPNAME="${ZIPNAME}-${STAMP}-${{ env.KERNEL_SHA }}.zip"
 
@@ -940,7 +945,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: whyred-build-${{ github.run_number }}
+          name: C9-Kernel-KSUN-${{ github.run_number }}
           path: |
             ${{ env.OUTZIP }}
             kernel_source/build.log
@@ -953,14 +958,15 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          name: Whyred KSUN+SUSFS build #${{ github.run_number }}
+          name: C9 Kernel KSUN #${{ github.run_number }}
           body: |
-            **Auto-build**
+            **C9 Custom Kernel for Whyred**
+            - Builder: JorianPonomaref
             - Kernel source: `${{ inputs.kernel_repo }}@${{ inputs.kernel_branch }}` (${{ env.KERNEL_SHA }})
             - Kernel version: `${{ env.KERNEL_VERSION }}`
             - Defconfig: `${{ env.DCFG_NAME }}`
             - KernelSU-Next: `${{ inputs.ksun_branch }}` @ `${{ env.KSUN_VERSION }}`
-            - SUSFS: `${{ inputs.susfs_branch }}` @ `${{ env.SUSFS_VERSION }}` (enabled: ${{ inputs.enable_susfs }})
+            - Hooks: kucingoranye/kernel_patches manual hook + path_umount backport
           files: ${{ env.OUTZIP }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
