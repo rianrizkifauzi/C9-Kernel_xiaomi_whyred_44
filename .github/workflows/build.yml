@@ -61,6 +61,18 @@ on:
         description: 'Kernel release version (San-Kernel style, e.g. R1.0, R1.1.101)'
         required: false
         default: 'R1.0'
+      enable_lto:
+        description: 'LTO mode (off=no LTO, thin=ThinLTO parallel, full=Full LTO max optimize). WARNING: full LTO needs 16GB+ RAM and 2-3x build time.'
+        required: false
+        default: 'off'
+        type: choice
+        options: ['off', 'thin', 'full']
+      enable_polly:
+        description: 'Enable LLVM Polly loop optimizer (polyhedral optimization). Experimental on 4.4.'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['true', 'false']
 
 env:
   TZ: Asia/Jakarta
@@ -895,11 +907,40 @@ jobs:
 
           # NOTE: Kernel 4.4 doesn't play nice with ld.lld (empty built-in.o issue).
           # Use Clang for compile but GNU ld (from binutils) for link.
+          # Exception: Full LTO requires ld.lld (GNU ld can't handle LTO bitcode).
+
+          # === LTO + Polly flags ===
+          EXTRA_KCFLAGS=""
+          LINKER_OVERRIDE=""
+          LTO_MODE="${{ inputs.enable_lto }}"
+          POLLY_ENABLED="${{ inputs.enable_polly }}"
+
+          if [ "$LTO_MODE" = "thin" ]; then
+            echo "⚡ ThinLTO enabled"
+            EXTRA_KCFLAGS="$EXTRA_KCFLAGS -flto=thin"
+            LINKER_OVERRIDE="LD=ld.lld"
+          elif [ "$LTO_MODE" = "full" ]; then
+            echo "⚡ Full LTO enabled (slow build, max optimize)"
+            EXTRA_KCFLAGS="$EXTRA_KCFLAGS -flto"
+            LINKER_OVERRIDE="LD=ld.lld"
+          fi
+
+          if [ "$POLLY_ENABLED" = "true" ]; then
+            echo "⚡ LLVM Polly optimizer enabled"
+            EXTRA_KCFLAGS="$EXTRA_KCFLAGS -mllvm -polly -mllvm -polly-vectorizer=stripmine -mllvm -polly-run-dce"
+          fi
+
+          if [ -n "$EXTRA_KCFLAGS" ]; then
+            echo "  KCFLAGS: $EXTRA_KCFLAGS"
+          fi
+
           make O=out ARCH=arm64 \
             CC="ccache clang" \
             CLANG_TRIPLE=aarch64-linux-gnu- \
             CROSS_COMPILE=aarch64-linux-gnu- \
             CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+            ${LINKER_OVERRIDE} \
+            ${EXTRA_KCFLAGS:+KCFLAGS="$EXTRA_KCFLAGS"} \
             -j$(nproc --all) 2>&1 | tee -a build.log
 
           echo ""
@@ -953,6 +994,14 @@ jobs:
           if [ "${{ inputs.enable_susfs }}" = "true" ]; then
             ZIPNAME="${ZIPNAME}-SUSFS"
           fi
+          if [ "${{ inputs.enable_lto }}" = "thin" ]; then
+            ZIPNAME="${ZIPNAME}-ThinLTO"
+          elif [ "${{ inputs.enable_lto }}" = "full" ]; then
+            ZIPNAME="${ZIPNAME}-FullLTO"
+          fi
+          if [ "${{ inputs.enable_polly }}" = "true" ]; then
+            ZIPNAME="${ZIPNAME}-Polly"
+          fi
           ZIPNAME="${ZIPNAME}.zip"
           echo "KERNEL_CODENAME=${KERNEL_CODENAME}" >> $GITHUB_ENV
           echo "KERNEL_RELVER=${KERNEL_RELVER}" >> $GITHUB_ENV
@@ -978,7 +1027,7 @@ jobs:
           retention-days: 30
 
       - name: Create Release (cross-repo to C9-Kernel_releases)
-        if: success() && env.OUTZIP != ''
+        if: success() && env.OUTZIP != '' && inputs.enable_lto == 'off' && inputs.enable_polly == 'false'
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.RELEASES_TOKEN }}
