@@ -1006,8 +1006,10 @@ jobs:
           KERNEL_CODENAME="${KERNEL_CODENAME:-Genesis}"
           KERNEL_RELVER="${KERNEL_RELVER:-R1.0}"
           ZIPNAME="C9-Kernel-${KERNEL_CODENAME}-${KERNEL_RELVER}-${DEVICE_LABEL}-KSUN"
-          if [ "${{ inputs.ksun_branch }}" = "next" ]; then
+          if [ "${{ inputs.ksun_branch }}" = "next" ] || [ "${{ inputs.ksun_branch }}" = "dev" ]; then
             ZIPNAME="${ZIPNAME}-Next"
+          elif [ "${{ inputs.ksun_branch }}" = "legacy-susfs" ]; then
+            ZIPNAME="${ZIPNAME}-LegacySusfs"
           fi
           if [ "${{ inputs.enable_susfs }}" = "true" ]; then
             ZIPNAME="${ZIPNAME}-SUSFS"
@@ -1045,7 +1047,7 @@ jobs:
           retention-days: 30
 
       - name: Create Release (cross-repo to C9-Kernel_releases)
-        if: success() && env.OUTZIP != '' && inputs.enable_lto == 'off' && inputs.enable_polly == 'false' && inputs.ksun_branch != 'next'
+        if: success() && env.OUTZIP != '' && inputs.enable_lto == 'off' && inputs.enable_polly == 'false' && inputs.ksun_branch != 'next' && !contains(inputs.kernel_relver, 'Test')
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.RELEASES_TOKEN }}
