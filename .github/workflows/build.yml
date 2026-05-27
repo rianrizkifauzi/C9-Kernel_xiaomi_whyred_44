@@ -917,12 +917,14 @@ jobs:
 
           if [ "$LTO_MODE" = "thin" ]; then
             echo "⚡ ThinLTO enabled"
-            EXTRA_KCFLAGS="$EXTRA_KCFLAGS -flto=thin"
-            LINKER_OVERRIDE="LD=ld.lld"
+            echo "⚠️  NOTE: Kernel 4.4 requires Makefile backport for LTO. If build fails, use 'off'."
+            EXTRA_KCFLAGS="$EXTRA_KCFLAGS -flto=thin -fvisibility=hidden"
+            LINKER_OVERRIDE="LD=ld.lld LLVM=1 LLVM_IAS=1"
           elif [ "$LTO_MODE" = "full" ]; then
             echo "⚡ Full LTO enabled (slow build, max optimize)"
-            EXTRA_KCFLAGS="$EXTRA_KCFLAGS -flto"
-            LINKER_OVERRIDE="LD=ld.lld"
+            echo "⚠️  NOTE: Kernel 4.4 requires Makefile backport for LTO. If build fails, use 'off'."
+            EXTRA_KCFLAGS="$EXTRA_KCFLAGS -flto -fvisibility=hidden"
+            LINKER_OVERRIDE="LD=ld.lld LLVM=1 LLVM_IAS=1"
           fi
 
           if [ "$POLLY_ENABLED" = "true" ]; then
@@ -932,6 +934,19 @@ jobs:
 
           if [ -n "$EXTRA_KCFLAGS" ]; then
             echo "  KCFLAGS: $EXTRA_KCFLAGS"
+          fi
+
+          # For LTO builds: need to disable host tool compilation with LTO flags
+          # by building scripts separately without KCFLAGS
+          if [ "$LTO_MODE" != "off" ] && [ -n "$LTO_MODE" ]; then
+            echo "=== Pre-build: compile scripts without LTO ==="
+            make O=out ARCH=arm64 \
+              CC="ccache clang" \
+              CLANG_TRIPLE=aarch64-linux-gnu- \
+              CROSS_COMPILE=aarch64-linux-gnu- \
+              CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+              scripts 2>&1 | tee -a build.log
+            echo "=== Scripts built, now building kernel with LTO ==="
           fi
 
           make O=out ARCH=arm64 \
