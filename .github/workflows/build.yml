@@ -73,6 +73,20 @@ on:
         default: 'false'
         type: choice
         options: ['true', 'false']
+      enable_cid_spoof:
+        description: 'CID spoof for offer-anchor research. false=off (default). ioctl_only=Patch A only (block.c, SAFE — only user-space ioctl path). full=Patch A+B (block.c+mmc.c, RISKY — may break FBE on encrypted userdata, only test on burned device).'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'ioctl_only', 'full']
+      cid_spoof_xor_lo:
+        description: 'XOR mask for response[2] / raw_cid[2] (PSN low-16). Default 0x0000FFFF flips PSN low half. Hex string.'
+        required: false
+        default: '0x0000FFFF'
+      cid_spoof_xor_hi:
+        description: 'XOR mask for response[3] / raw_cid[3] (PSN high-16). Default 0xFFFF0000 flips PSN high half. Hex string.'
+        required: false
+        default: '0xFFFF0000'
 
 env:
   TZ: Asia/Jakarta
@@ -162,6 +176,65 @@ jobs:
           echo "KERNEL_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           echo "KERNEL_FULL_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
           echo "Final kernel HEAD: $(git rev-parse --short HEAD)"
+
+      - name: Inject CID spoof (offer-anchor research)
+        if: ${{ inputs.enable_cid_spoof != 'false' }}
+        working-directory: kernel_source
+        run: |
+          set -e
+          XLO="${{ inputs.cid_spoof_xor_lo }}"
+          XHI="${{ inputs.cid_spoof_xor_hi }}"
+          echo "=== CID SPOOF mode=${{ inputs.enable_cid_spoof }} | xor_lo=${XLO} xor_hi=${XHI} ==="
+
+          # ---- Patch A: block.c ioctl path (SAFE - only user-space MMC_IOC_CMD, e.g. DroidGuard) ----
+          # 4.4 kernel: drivers/mmc/card/block.c ; 4.10+: drivers/mmc/core/block.c
+          if [ -f drivers/mmc/card/block.c ] && grep -q "struct mmc_ioc_cmd \*ic = &idata->ic;" drivers/mmc/card/block.c; then
+            BC="drivers/mmc/card/block.c"
+          else
+            BC="drivers/mmc/core/block.c"
+          fi
+          echo "  [A] target block.c = $BC"
+          if grep -q "struct mmc_ioc_cmd \*ic = &idata->ic;" "$BC"; then
+            awk -v xlo="$XLO" -v xhi="$XHI" '
+              { print }
+              /struct mmc_ioc_cmd \*ic = &idata->ic;/ && !done_a {
+                print "\t/* CID-SPOOF: flip PSN in CMD2/CMD10 response */"
+                print "\tif (ic->opcode == 2 || ic->opcode == 10) {"
+                print "\t\tic->response[2] ^= " xlo ";"
+                print "\t\tic->response[3] ^= " xhi ";"
+                print "\t}"
+                done_a = 1
+              }
+            ' "$BC" > /tmp/block.c && mv /tmp/block.c "$BC"
+            echo "  [A] block.c patched:"
+            grep -n "CID-SPOOF\|ic->response\[2\] \^=" "$BC" || true
+          else
+            echo "::error::[A] anchor not found in $BC"
+            exit 1
+          fi
+
+          # ---- Patch B: mmc.c raw_cid (RISKY - affects in-kernel CID incl. FBE crypto) ----
+          if [ "${{ inputs.enable_cid_spoof }}" = "full" ]; then
+            MC="drivers/mmc/core/mmc.c"
+            if grep -q "mmc_decode_cid(struct mmc_card \*card)" "$MC"; then
+              awk -v xlo="$XLO" -v xhi="$XHI" '
+                { print }
+                /mmc_decode_cid\(struct mmc_card \*card\)/ { infn = 1 }
+                infn && /{/ && !done_b {
+                  print "\tcard->raw_cid[2] ^= " xlo ";"
+                  print "\tcard->raw_cid[3] ^= " xhi ";"
+                  done_b = 1
+                  infn = 0
+                }
+              ' "$MC" > /tmp/mmc.c && mv /tmp/mmc.c "$MC"
+              echo "  [B] mmc.c patched:"
+              grep -n "raw_cid\[2\] \^=" "$MC" || echo "::warning::[B] raw_cid line not found — verify manually"
+            else
+              echo "::warning::[B] mmc_decode_cid signature differs — skipping Patch B"
+            fi
+          else
+            echo "  [B] skipped (mode=ioctl_only) — safest, no FBE risk"
+          fi
 
       - name: Resolve defconfig
         working-directory: kernel_source
