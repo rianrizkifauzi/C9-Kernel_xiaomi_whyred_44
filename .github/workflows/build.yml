@@ -982,6 +982,8 @@ jobs:
           MAKE_DCFG=$(basename "${DCFG_NAME}")
           echo "=== Generating .config from ${MAKE_DCFG} ==="
           make O=out ARCH=arm64 "${MAKE_DCFG}" 2>&1 | tee -a build.log
+          # Auto-resolve new config options (non-interactive)
+          make O=out ARCH=arm64 olddefconfig 2>&1 | tee -a build.log
 
           echo ""
           echo "=== Building kernel (Clang+GNU-LD hybrid for 4.4 compat) ==="
