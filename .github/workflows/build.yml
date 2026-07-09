@@ -989,15 +989,18 @@ jobs:
             sed -i 's/CONFIG_BIG_CPU_MASK=.*/CONFIG_BIG_CPU_MASK=192/' out/.config
           fi
           # Fix bpf.h missing function body (sdm660-perf enables different BPF config)
-          BPF_H="include/linux/bpf.h"
-          if grep -q 'bpf_prog_inc.*prog)$' "$BPF_H" 2>/dev/null; then
-            echo "Fixing bpf.h missing bpf_prog_inc body..."
-            sed -i '/^static inline struct bpf_prog \*bpf_prog_inc(struct bpf_prog \*prog)$/{
-              N
-              /\n$/c\
-static inline struct bpf_prog *bpf_prog_inc(struct bpf_prog *prog)\n{\n\treturn prog;\n}
-            }' "$BPF_H"
-          fi
+          python3 -c "
+          import re
+          with open('include/linux/bpf.h','r') as f: c=f.read()
+          old='static inline struct bpf_prog *bpf_prog_inc(struct bpf_prog *prog)\n\n'
+          new='static inline struct bpf_prog *bpf_prog_inc(struct bpf_prog *prog)\n{\n\treturn prog;\n}\n\n'
+          if old in c:
+            print('Fixing bpf.h missing bpf_prog_inc body...')
+            c=c.replace(old,new)
+            with open('include/linux/bpf.h','w') as f: f.write(c)
+          else:
+            print('bpf.h OK, no fix needed')
+          "
           # Auto-resolve new config options (non-interactive)
           make O=out ARCH=arm64 olddefconfig 2>&1 | tee -a build.log
 
