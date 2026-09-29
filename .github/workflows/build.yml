@@ -986,11 +986,30 @@ jobs:
             printf '\n/* Compat: ALIGN_DOWN not available before 4.6 */\n#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)\n#ifndef ALIGN_DOWN\n#define ALIGN_DOWN(x, a) __ALIGN_KERNEL((x) - ((a) - 1), (a))\n#endif\n#endif\n' >> "$COMPAT_H"
             echo "Patched ALIGN_DOWN in $COMPAT_H"
           fi
-          # Fix 4: inject ALIGN_DOWN directly into files that use it
-          for f in $(find drivers/kernelsu -name "*.c" -exec grep -l "ALIGN_DOWN" {} + 2>/dev/null); do
-            if ! grep -q "ifndef ALIGN_DOWN" "$f"; then
-              sed -i '1i /* kernel 4.4 compat */\n#include <linux/version.h>\n#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)\n#ifndef ALIGN_DOWN\n#define ALIGN_DOWN(x, a) __ALIGN_KERNEL((x) - ((a) - 1), (a))\n#endif\n#endif' "$f"
-              echo "  Injected ALIGN_DOWN into $f"
+          # Fix 4: inject compat defines into ALL KSU .c files (blanket approach)
+          COMPAT_BLOCK='/* kernel 4.4 compat shim */
+#include <linux/version.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)
+#ifndef ALIGN_DOWN
+#define ALIGN_DOWN(x, a) __ALIGN_KERNEL((x) - ((a) - 1), (a))
+#endif
+#endif
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
+#ifndef kvmalloc
+#define kvmalloc(s, f) kmalloc(s, (f) | __GFP_NOWARN)
+#endif
+#ifndef kvfree
+#define kvfree(p) kfree(p)
+#endif
+#endif
+'
+          for f in $(find drivers/kernelsu -name "*.c" -o -name "*.h" | head -100); do
+            if grep -qE "ALIGN_DOWN|kvmalloc" "$f" 2>/dev/null; then
+              if ! grep -q "kernel 4.4 compat shim" "$f"; then
+                tmpf=$(mktemp)
+                printf '%s\n' "$COMPAT_BLOCK" | cat - "$f" > "$tmpf" && mv "$tmpf" "$f"
+                echo "  Shimmed $f"
+              fi
             fi
           done
           echo "KSU 4.4 compat done"
