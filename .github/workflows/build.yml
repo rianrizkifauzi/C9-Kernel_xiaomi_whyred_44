@@ -959,45 +959,40 @@ jobs:
             fi
           fi
 
-      - name: Patch KSU for kernel 4.4 compat
+      - name: Patch KSU for manager v3.4.0 compat
         working-directory: kernel_source
         run: |
           set -e
-          echo "=== KSU 4.4 compat ==="
-          python3 -c "
-          import os, glob
-          shim = (
-              '/* Auto-generated kernel 4.4 compat */\n'
-              '#include <linux/version.h>\n'
-              '#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)\n'
-              '#ifndef ALIGN_DOWN\n'
-              '#define ALIGN_DOWN(x, a) __ALIGN_KERNEL((x) - ((a) - 1), (a))\n'
-              '#endif\n'
-              '#endif\n'
-              '#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)\n'
-              '#ifndef in_compat_syscall\n'
-              '#define in_compat_syscall() (0)\n'
-              '#endif\n'
-              '#endif\n'
-              '#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)\n'
-              '#ifndef kvmalloc\n'
-              '#define kvmalloc(s, f) kmalloc(s, (f) | __GFP_NOWARN)\n'
-              '#endif\n'
-              '#ifndef kvfree\n'
-              '#define kvfree(p) kfree(p)\n'
-              '#endif\n'
-              '#endif\n'
-          )
-          targets = ['ALIGN_DOWN', 'in_compat_syscall', 'kvmalloc']
-          for root, dirs, files in os.walk('drivers/kernelsu'):
-              for fn in files:
-                  if fn.endswith(('.c', '.h')):
-                      fp = os.path.join(root, fn)
-                      data = open(fp).read()
-                      if any(t in data for t in targets) and 'kernel 4.4 compat' not in data:
-                          open(fp, 'w').write(shim + data)
-                          print(f'  Shimmed {fp}')
-          "
+          echo "=== Patching KSU for manager v3.4.0 compat ==="
+          
+          # 1. Add KERNEL_SU_UAPI_VERSION to uapi/supercall.h
+          SUPERCALL="drivers/kernelsu/uapi/supercall.h"
+          if [ -f "$SUPERCALL" ] && ! grep -q "KERNEL_SU_UAPI_VERSION" "$SUPERCALL"; then
+            sed -i '/#define __KSU_UAPI_SUPERCALL_H/a \\n#ifndef KERNEL_SU_UAPI_VERSION\n#define KERNEL_SU_UAPI_VERSION 2\n#endif' "$SUPERCALL"
+            echo "  Added KERNEL_SU_UAPI_VERSION=2 to $SUPERCALL"
+          fi
+          
+          # 2. Add uapi_version field to ksu_get_info_cmd struct
+          if grep -q "struct ksu_get_info_cmd" "$SUPERCALL" && ! grep -q "uapi_version" "$SUPERCALL"; then
+            sed -i '/\__u32 flags;.*KSU_GET_INFO_FLAG/a \\t__u32 uapi_version; /* Output: KERNEL_SU_UAPI_VERSION */' "$SUPERCALL"
+            echo "  Added uapi_version field to ksu_get_info_cmd"
+          fi
+          
+          # 3. Set uapi_version in dispatch.c do_get_info
+          DISPATCH="drivers/kernelsu/supercall/dispatch.c"
+          if [ -f "$DISPATCH" ] && ! grep -q "uapi_version" "$DISPATCH"; then
+            sed -i '/\.version = KERNEL_SU_VERSION/s/};/, .uapi_version = KERNEL_SU_UAPI_VERSION};/' "$DISPATCH"
+            echo "  Set uapi_version in dispatch.c"
+          fi
+          
+          # 4. Add ALIGN_DOWN compat to adb_root.c
+          ADB_ROOT="drivers/kernelsu/feature/adb_root.c"
+          if [ -f "$ADB_ROOT" ] && grep -q "ALIGN_DOWN" "$ADB_ROOT" && ! grep -q "ifndef ALIGN_DOWN" "$ADB_ROOT"; then
+            sed -i '1i #include <linux/version.h>\n#if LINUX_VERSION_CODE < KERNEL_VERSION(4,6,0)\n#ifndef ALIGN_DOWN\n#define ALIGN_DOWN(x, a) __ALIGN_KERNEL((x) - ((a) - 1), (a))\n#endif\n#endif' "$ADB_ROOT"
+            echo "  Added ALIGN_DOWN compat to $ADB_ROOT"
+          fi
+          
+          echo "  Manager compat patches done"
       - name: Build kernel
         working-directory: kernel_source
         env:
