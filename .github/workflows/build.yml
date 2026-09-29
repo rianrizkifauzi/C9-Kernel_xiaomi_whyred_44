@@ -966,27 +966,28 @@ jobs:
           echo "=== KSU 4.4 compat ==="
           python3 -c "
           import os, glob
-          shim = '''/* Auto-generated kernel 4.4 compat */
-          #include <linux/version.h>
-          #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)
-          #ifndef ALIGN_DOWN
-          #define ALIGN_DOWN(x, a) __ALIGN_KERNEL((x) - ((a) - 1), (a))
-          #endif
-          #endif
-          #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)
-          #ifndef in_compat_syscall
-          #define in_compat_syscall() (0)
-          #endif
-          #endif
-          #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
-          #ifndef kvmalloc
-          #define kvmalloc(s, f) kmalloc(s, (f) | __GFP_NOWARN)
-          #endif
-          #ifndef kvfree
-          #define kvfree(p) kfree(p)
-          #endif
-          #endif
-          '''
+          shim = (
+              '/* Auto-generated kernel 4.4 compat */\n'
+              '#include <linux/version.h>\n'
+              '#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)\n'
+              '#ifndef ALIGN_DOWN\n'
+              '#define ALIGN_DOWN(x, a) __ALIGN_KERNEL((x) - ((a) - 1), (a))\n'
+              '#endif\n'
+              '#endif\n'
+              '#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)\n'
+              '#ifndef in_compat_syscall\n'
+              '#define in_compat_syscall() (0)\n'
+              '#endif\n'
+              '#endif\n'
+              '#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)\n'
+              '#ifndef kvmalloc\n'
+              '#define kvmalloc(s, f) kmalloc(s, (f) | __GFP_NOWARN)\n'
+              '#endif\n'
+              '#ifndef kvfree\n'
+              '#define kvfree(p) kfree(p)\n'
+              '#endif\n'
+              '#endif\n'
+          )
           targets = ['ALIGN_DOWN', 'in_compat_syscall', 'kvmalloc']
           for root, dirs, files in os.walk('drivers/kernelsu'):
               for fn in files:
@@ -994,7 +995,7 @@ jobs:
                       fp = os.path.join(root, fn)
                       data = open(fp).read()
                       if any(t in data for t in targets) and 'kernel 4.4 compat' not in data:
-                          open(fp, 'w').write(shim.strip() + '\n' + data)
+                          open(fp, 'w').write(shim + data)
                           print(f'  Shimmed {fp}')
           "
       - name: Build kernel
