@@ -980,6 +980,12 @@ jobs:
             sed -i 's|#include <linux/compiler_types.h>|#include <linux/compiler.h>|' "$f"
             echo "Fixed compiler_types.h in $f"
           done
+          # Fix 3: ALIGN_DOWN not available in 4.4
+          COMPAT_H="drivers/kernelsu/compat/kernel_compat.h"
+          if ! grep -q "ALIGN_DOWN" "$COMPAT_H" 2>/dev/null; then
+            printf '\n/* Compat: ALIGN_DOWN not available before 4.6 */\n#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)\n#ifndef ALIGN_DOWN\n#define ALIGN_DOWN(x, a) __ALIGN_KERNEL((x) - ((a) - 1), (a))\n#endif\n#endif\n' >> "$COMPAT_H"
+            echo "Patched ALIGN_DOWN in $COMPAT_H"
+          fi
           echo "KSU 4.4 compat done"
       - name: Build kernel
         working-directory: kernel_source
