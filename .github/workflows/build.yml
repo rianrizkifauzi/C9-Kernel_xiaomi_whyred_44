@@ -966,7 +966,7 @@ jobs:
           echo "=== Patching KSU for manager v3.4.0 compat ==="
           
           # 1. Add KERNEL_SU_UAPI_VERSION to uapi/supercall.h
-          SUPERCALL=$(find drivers/kernelsu -path "*/uapi/supercall.h" -type f | head -1)
+          SUPERCALL=$(find . -path "*/uapi/supercall.h" -name "supercall.h" -type f 2>/dev/null | head -1)
           echo "  Found supercall.h at: $SUPERCALL"
           if [ -f "$SUPERCALL" ] && ! grep -q "KERNEL_SU_UAPI_VERSION" "$SUPERCALL"; then
             sed -i '/#define __KSU_UAPI_SUPERCALL_H/a \\n#ifndef KERNEL_SU_UAPI_VERSION\n#define KERNEL_SU_UAPI_VERSION 2\n#endif' "$SUPERCALL"
@@ -980,7 +980,7 @@ jobs:
           fi
           
           # 3. Set uapi_version in dispatch.c do_get_info
-          DISPATCH=$(find drivers/kernelsu -name "dispatch.c" -path "*/supercall/*" -type f | head -1)
+          DISPATCH=$(find . -name "dispatch.c" -path "*/supercall/*" -type f 2>/dev/null | head -1)
           echo "  Found dispatch.c at: $DISPATCH"
           if [ -f "$DISPATCH" ] && ! grep -q "uapi_version" "$DISPATCH"; then
             sed -i '/\.version = KERNEL_SU_VERSION/s/};/, .uapi_version = KERNEL_SU_UAPI_VERSION};/' "$DISPATCH"
@@ -988,7 +988,7 @@ jobs:
           fi
           
           # 4. Add ALIGN_DOWN compat to adb_root.c
-          ADB_ROOT=$(find drivers/kernelsu -name "adb_root.c" -type f | head -1)
+          ADB_ROOT=$(find . -name "adb_root.c" -path "*kernelsu*" -type f 2>/dev/null | head -1)
           echo "  Found adb_root.c at: $ADB_ROOT"
           if [ -f "$ADB_ROOT" ] && grep -q "ALIGN_DOWN" "$ADB_ROOT" && ! grep -q "ifndef ALIGN_DOWN" "$ADB_ROOT"; then
             sed -i '1i #include <linux/version.h>\n#if LINUX_VERSION_CODE < KERNEL_VERSION(4,6,0)\n#ifndef ALIGN_DOWN\n#define ALIGN_DOWN(x, a) __ALIGN_KERNEL((x) - ((a) - 1), (a))\n#endif\n#endif' "$ADB_ROOT"
