@@ -957,7 +957,9 @@ jobs:
             else
               echo "  ⚠️  supercall.c not found, skipping ksuver_override patch"
             fi
-          fi      - name: Patch KSU for kernel 4.4 compat
+          fi
+
+      - name: Patch KSU for kernel 4.4 compat
         working-directory: kernel_source
         run: |
           set -e
