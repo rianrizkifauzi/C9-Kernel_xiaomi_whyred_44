@@ -963,56 +963,40 @@ jobs:
         working-directory: kernel_source
         run: |
           set -e
-          echo "=== Patching KSU for kernel 4.4 compatibility ==="
-          COMPAT_H="drivers/kernelsu/compat/kernel_compat.h"
-          if [ -f "$COMPAT_H" ]; then
-            if ! grep -q "in_compat_syscall" "$COMPAT_H"; then
-              printf '\n/* Compat: in_compat_syscall() not available before 4.5 */\n#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)\n#ifndef in_compat_syscall\nstatic inline bool in_compat_syscall(void) { return false; }\n#endif\n#endif\n' >> "$COMPAT_H"
-              echo "Patched in_compat_syscall in $COMPAT_H"
-            fi
-          else
-            for f in $(find drivers/kernelsu -name "*.c" -exec grep -l "in_compat_syscall" {} + 2>/dev/null); do
-              sed -i '1i #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)\n#ifndef in_compat_syscall\nstatic inline bool in_compat_syscall(void) { return false; }\n#endif\n#endif' "$f"
-              echo "Patched $f"
-            done
-          fi
-          for f in $(find drivers/kernelsu -name "*.h" -exec grep -l "compiler_types.h" {} + 2>/dev/null); do
-            sed -i 's|#include <linux/compiler_types.h>|#include <linux/compiler.h>|' "$f"
-            echo "Fixed compiler_types.h in $f"
-          done
-          # Fix 3: ALIGN_DOWN not available in 4.4
-          COMPAT_H="drivers/kernelsu/compat/kernel_compat.h"
-          if ! grep -q "ALIGN_DOWN" "$COMPAT_H" 2>/dev/null; then
-            printf '\n/* Compat: ALIGN_DOWN not available before 4.6 */\n#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)\n#ifndef ALIGN_DOWN\n#define ALIGN_DOWN(x, a) __ALIGN_KERNEL((x) - ((a) - 1), (a))\n#endif\n#endif\n' >> "$COMPAT_H"
-            echo "Patched ALIGN_DOWN in $COMPAT_H"
-          fi
-          # Fix 4: inject compat defines into ALL KSU .c files (blanket approach)
-          COMPAT_BLOCK='/* kernel 4.4 compat shim */
-#include <linux/version.h>
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)
-#ifndef ALIGN_DOWN
-#define ALIGN_DOWN(x, a) __ALIGN_KERNEL((x) - ((a) - 1), (a))
-#endif
-#endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
-#ifndef kvmalloc
-#define kvmalloc(s, f) kmalloc(s, (f) | __GFP_NOWARN)
-#endif
-#ifndef kvfree
-#define kvfree(p) kfree(p)
-#endif
-#endif
-'
-          for f in $(find drivers/kernelsu -name "*.c" -o -name "*.h" | head -100); do
-            if grep -qE "ALIGN_DOWN|kvmalloc" "$f" 2>/dev/null; then
-              if ! grep -q "kernel 4.4 compat shim" "$f"; then
-                tmpf=$(mktemp)
-                printf '%s\n' "$COMPAT_BLOCK" | cat - "$f" > "$tmpf" && mv "$tmpf" "$f"
-                echo "  Shimmed $f"
-              fi
-            fi
-          done
-          echo "KSU 4.4 compat done"
+          echo "=== KSU 4.4 compat ==="
+          python3 -c "
+          import os, glob
+          shim = '''/* Auto-generated kernel 4.4 compat */
+          #include <linux/version.h>
+          #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)
+          #ifndef ALIGN_DOWN
+          #define ALIGN_DOWN(x, a) __ALIGN_KERNEL((x) - ((a) - 1), (a))
+          #endif
+          #endif
+          #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)
+          #ifndef in_compat_syscall
+          #define in_compat_syscall() (0)
+          #endif
+          #endif
+          #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
+          #ifndef kvmalloc
+          #define kvmalloc(s, f) kmalloc(s, (f) | __GFP_NOWARN)
+          #endif
+          #ifndef kvfree
+          #define kvfree(p) kfree(p)
+          #endif
+          #endif
+          '''
+          targets = ['ALIGN_DOWN', 'in_compat_syscall', 'kvmalloc']
+          for root, dirs, files in os.walk('drivers/kernelsu'):
+              for fn in files:
+                  if fn.endswith(('.c', '.h')):
+                      fp = os.path.join(root, fn)
+                      data = open(fp).read()
+                      if any(t in data for t in targets) and 'kernel 4.4 compat' not in data:
+                          open(fp, 'w').write(shim.strip() + '\n' + data)
+                          print(f'  Shimmed {fp}')
+          "
       - name: Build kernel
         working-directory: kernel_source
         env:
