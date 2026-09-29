@@ -14,7 +14,7 @@ on:
       kernel_commit:
         description: 'Pin kernel source to specific commit SHA (use "head" for latest). e0183e3c was last confirmed booting build (run #11).'
         required: true
-        default: 'head'
+        default: 'e0183e3c'
       defconfig:
         description: 'Defconfig name (under arch/arm64/configs/). Leave "auto" to autodetect whyred.'
         required: true
@@ -964,50 +964,23 @@ jobs:
         run: |
           set -e
           echo "=== Patching KSU for kernel 4.4 compatibility ==="
-          
-          # Fix 1: in_compat_syscall not available in 4.4
           COMPAT_H="drivers/kernelsu/compat/kernel_compat.h"
           if [ -f "$COMPAT_H" ]; then
             if ! grep -q "in_compat_syscall" "$COMPAT_H"; then
-              cat >> "$COMPAT_H" << 'COMPAT_EOF'
-
-/* Compat: in_compat_syscall() not available before 4.5 */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)
-#ifndef in_compat_syscall
-static inline bool in_compat_syscall(void) {
-#ifdef CONFIG_COMPAT
-  return is_compat_task();
-#else
-  return false;
-#endif
-}
-#endif
-#endif
-COMPAT_EOF
-              echo "  Patched: in_compat_syscall compat added to $COMPAT_H"
+              printf '\n/* Compat: in_compat_syscall() not available before 4.5 */\n#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)\n#ifndef in_compat_syscall\nstatic inline bool in_compat_syscall(void) { return false; }\n#endif\n#endif\n' >> "$COMPAT_H"
+              echo "Patched in_compat_syscall in $COMPAT_H"
             fi
           else
-            # Create compat header if not exists, search for sulog/event.c
-            for f in $(find drivers/kernelsu -name "*.c" -exec grep -l "in_compat_syscall" {} +); do
-              echo "  Patching $f: adding in_compat_syscall fallback"
-              sed -i '/#include.*compat\.h/a \
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)\n\
-#ifndef in_compat_syscall\n\
-static inline bool in_compat_syscall(void) { return false; }\n\
-#endif\n\
-#endif' "$f"
+            for f in $(find drivers/kernelsu -name "*.c" -exec grep -l "in_compat_syscall" {} + 2>/dev/null); do
+              sed -i '1i #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)\n#ifndef in_compat_syscall\nstatic inline bool in_compat_syscall(void) { return false; }\n#endif\n#endif' "$f"
+              echo "Patched $f"
             done
           fi
-          
-          # Fix 2: compiler_types.h not available in 4.4 (for ksud.h)
           for f in $(find drivers/kernelsu -name "*.h" -exec grep -l "compiler_types.h" {} + 2>/dev/null); do
-            echo "  Patching $f: compiler_types.h -> compiler.h"
-            sed -i 's|#include <linux/compiler_types.h>|#ifdef __has_include\n#if __has_include(<linux/compiler_types.h>)\n#include <linux/compiler_types.h>\n#else\n#include <linux/compiler.h>\n#endif\n#else\n#include <linux/compiler.h>\n#endif|' "$f"
+            sed -i 's|#include <linux/compiler_types.h>|#include <linux/compiler.h>|' "$f"
+            echo "Fixed compiler_types.h in $f"
           done
-          
-          echo "  KSU 4.4 compat patches applied"
-
-
+          echo "KSU 4.4 compat done"
       - name: Build kernel
         working-directory: kernel_source
         env:
