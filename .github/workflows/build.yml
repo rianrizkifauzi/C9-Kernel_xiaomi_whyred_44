@@ -993,32 +993,25 @@ jobs:
           echo "=== Patched initializer ==="
           grep "ksu_get_info_cmd cmd" "$DISPATCH"
 
-          # 5. Patch dispatch handler to accept new-style IOCTL from manager v3.4.0
-          # Manager sends _IOR('K',2,struct) with size=16, kernel only knows size=0
-          # Solution: add early return in ksu_supercall_handle_ioctl for type=K nr=2
+          # 5. Patch dispatch.c: remap new IOCTL for manager v3.4.0 compat
           if [ -f "$DISPATCH" ] && ! grep -q "remap new-style" "$DISPATCH"; then
-            # Create a small C patch file
-            cat > /tmp/ioctl_remap.patch << 'EOPATCH'
---- a/dispatch.c
-+++ b/dispatch.c
-@@ ksu_supercall_handle_ioctl @@
- {
- 	int i;
-+
-+	/* remap new-style GET_INFO ioctl (with struct size) to legacy handler */
-+	if (_IOC_TYPE(cmd) == 'K' && _IOC_NR(cmd) == 2 && (_IOC_DIR(cmd) & _IOC_READ))
-+		return do_get_info(argp);
-+
-EOPATCH
-            # Apply manually: insert after "int i;" in ksu_supercall_handle_ioctl
-            sed -i '/^long ksu_supercall_handle_ioctl/,/int i;/{
-              /int i;/a\\n\t/* remap new-style GET_INFO ioctl (with struct size) to legacy handler */\n\tif (_IOC_TYPE(cmd) == '\''K'\'' \&\& _IOC_NR(cmd) == 2 \&\& (_IOC_DIR(cmd) \& _IOC_READ))\n\t\treturn do_get_info(argp);
-            }' "$DISPATCH"
-            echo "  Added IOCTL remap in ksu_supercall_handle_ioctl"
+            python3 -c "
+import sys
+f = sys.argv[1]
+with open(f) as fh: src = fh.read()
+old = 'long ksu_supercall_handle_ioctl(unsigned int cmd, void __user *argp)\n{\n\tint i;'
+new = old + '\n\n\t/* remap new-style GET_INFO ioctl (with struct size) to legacy handler */\n\tif (_IOC_TYPE(cmd) == \x27K\x27 && _IOC_NR(cmd) == 2 && (_IOC_DIR(cmd) & _IOC_READ))\n\t\treturn do_get_info(argp);'
+if old in src:
+  src = src.replace(old, new)
+  with open(f, 'w') as fh: fh.write(src)
+  print('  Injected IOCTL remap into ksu_supercall_handle_ioctl')
+else:
+  print('  WARNING: pattern not found in dispatch.c')
+            " "$DISPATCH"
           fi
-          
+
           echo "  === Verify remap ==="
-          grep -A8 "ksu_supercall_handle_ioctl" "$DISPATCH" | head -12
+          grep -A10 "ksu_supercall_handle_ioctl" "$DISPATCH" | head -14
 
           echo "  Manager compat patches done"
       - name: Build kernel
