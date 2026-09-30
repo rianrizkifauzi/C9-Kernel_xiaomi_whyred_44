@@ -23,18 +23,16 @@ is_slot_device=0;
 ramdisk_compression=auto;
 patch_vbmeta_flag=auto;
 
-# Banner
+## AnyKernel install
+. tools/ak3-core.sh;
+
+# Banner (after ak3-core.sh is loaded so ui_print is available)
 ui_print " ";
 ui_print "**************************************";
 ui_print "*  C9 Custom Kernel for Whyred       *";
-ui_print "*  Built by JorianPonomaref          *";
-ui_print "*  Base: 4.4-stable + KSUN-Next      *";
-ui_print "*  Hooks: kucingoranye/kernel_patches *";
+ui_print "*  KernelSU-Next v33294              *";
 ui_print "**************************************";
 ui_print " ";
-
-## AnyKernel install
-. tools/ak3-core.sh;
 
 split_boot;
 flash_boot;
