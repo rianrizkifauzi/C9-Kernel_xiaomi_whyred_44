@@ -17,16 +17,16 @@ supported.versions=
 supported.patchlevels=
 '; } # end properties
 
-# shell variables
-block=/dev/block/bootdevice/by-name/boot;
-is_slot_device=0;
-ramdisk_compression=auto;
-patch_vbmeta_flag=auto;
+# shell variables (UPPERCASE required by ak3-core.sh setup_ak)
+BLOCK=/dev/block/bootdevice/by-name/boot;
+IS_SLOT_DEVICE=0;
+RAMDISK_COMPRESSION=auto;
+PATCH_VBMETA_FLAG=auto;
 
 ## AnyKernel install
 . tools/ak3-core.sh;
 
-# Banner (after ak3-core.sh is loaded so ui_print is available)
+# Banner
 ui_print " ";
 ui_print "**************************************";
 ui_print "*  C9 Custom Kernel for Whyred       *";
