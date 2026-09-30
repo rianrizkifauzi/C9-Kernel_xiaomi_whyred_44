@@ -993,6 +993,24 @@ jobs:
           echo "=== Patched initializer ==="
           grep "ksu_get_info_cmd cmd" "$DISPATCH"
 
+          # 5. Fix IOCTL_GET_INFO to include sized version (manager v3.4.0 uses _IOR with struct size)
+          if [ -f "$SUPERCALL" ] && ! grep -q "KSU_IOCTL_GET_INFO_LEGACY" "$SUPERCALL"; then
+            # Rename old GET_INFO to LEGACY and add new sized version
+            sed -i 's|static const __u32 KSU_IOCTL_GET_INFO = _IOC(_IOC_READ, .K., 2, 0);|static const __u32 KSU_IOCTL_GET_INFO = _IOR('\''K'\'', 2, struct ksu_get_info_cmd);\nstatic const __u32 KSU_IOCTL_GET_INFO_LEGACY = _IOC(_IOC_READ, '\''K'\'', 2, 0);|' "$SUPERCALL"
+            echo "  Added KSU_IOCTL_GET_INFO (sized) + LEGACY"
+          fi
+          
+          # 6. Register LEGACY ioctl handler in dispatch.c handler table
+          if [ -f "$DISPATCH" ] && ! grep -q "KSU_IOCTL_GET_INFO_LEGACY" "$DISPATCH"; then
+            sed -i '/\.cmd = KSU_IOCTL_GET_INFO,/a\\t}, {\n\t\t.name = "get_info_legacy",\n\t\t.cmd = KSU_IOCTL_GET_INFO_LEGACY,\n\t\t.handler = do_get_info,' "$DISPATCH"
+            echo "  Registered LEGACY ioctl handler"
+          fi
+          
+          echo "  === IOCTL defs ==="
+          grep "KSU_IOCTL_GET_INFO" "$SUPERCALL"
+          echo "  === Handler table ==="
+          grep -A2 "get_info" "$DISPATCH" | head -10
+
           echo "  Manager compat patches done"
       - name: Build kernel
         working-directory: kernel_source
