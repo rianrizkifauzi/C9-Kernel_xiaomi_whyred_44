@@ -965,36 +965,34 @@ jobs:
           set -e
           echo "=== Patching KSU for manager v3.4.0 compat ==="
           
-          # 1. Add KERNEL_SU_UAPI_VERSION to uapi/supercall.h
+          # 1. Add KERNEL_SU_UAPI_VERSION=4 (matching latest manager v3.4.0)
           SUPERCALL=$(find . -path "*/uapi/supercall.h" -name "supercall.h" -type f 2>/dev/null | head -1)
           echo "  Found supercall.h at: $SUPERCALL"
           if [ -f "$SUPERCALL" ] && ! grep -q "KERNEL_SU_UAPI_VERSION" "$SUPERCALL"; then
-            sed -i '/#define __KSU_UAPI_SUPERCALL_H/a \\n#ifndef KERNEL_SU_UAPI_VERSION\n#define KERNEL_SU_UAPI_VERSION 2\n#endif' "$SUPERCALL"
-            echo "  Added KERNEL_SU_UAPI_VERSION=2 to $SUPERCALL"
+            echo "static const __u32 KERNEL_SU_UAPI_VERSION = 4;" >> "$SUPERCALL"
+            echo "  Added KERNEL_SU_UAPI_VERSION=4"
           fi
-          
-          # 2. Add uapi_version field to ksu_get_info_cmd struct
-          if grep -q "struct ksu_get_info_cmd" "$SUPERCALL" && ! grep -q "uapi_version" "$SUPERCALL"; then
-            sed -i '/\__u32 flags;.*KSU_GET_INFO_FLAG/a \\t__u32 uapi_version; /* Output: KERNEL_SU_UAPI_VERSION */' "$SUPERCALL"
-            echo "  Added uapi_version field to ksu_get_info_cmd"
+
+          # 2. Add uapi_version field AFTER features (correct struct offset)
+          if [ -f "$SUPERCALL" ] && grep -q "struct ksu_get_info_cmd" "$SUPERCALL" && ! grep -q "uapi_version" "$SUPERCALL"; then
+            sed -i '/__u32 features;/a\    __u32 uapi_version; /* Output: KERNEL_SU_UAPI_VERSION */' "$SUPERCALL"
+            echo "  Added uapi_version field after features"
           fi
-          
-          # 3. Set uapi_version in dispatch.c do_get_info
+
+          # 3. Initialize uapi_version in dispatch.c do_get_info
           DISPATCH=$(find . -name "dispatch.c" -path "*/supercall/*" -type f 2>/dev/null | head -1)
           echo "  Found dispatch.c at: $DISPATCH"
           if [ -f "$DISPATCH" ] && ! grep -q "uapi_version" "$DISPATCH"; then
-            sed -i '/\.version = KERNEL_SU_VERSION/s/};/, .uapi_version = KERNEL_SU_UAPI_VERSION};/' "$DISPATCH"
-            echo "  Set uapi_version in dispatch.c"
+            sed -i 's/\.version = KERNEL_SU_VERSION, \.flags = 0};/.version = KERNEL_SU_VERSION, .flags = 0, .uapi_version = KERNEL_SU_UAPI_VERSION};/' "$DISPATCH"
+            echo "  Set uapi_version=4 in dispatch.c"
           fi
-          
-          # 4. Add ALIGN_DOWN compat to adb_root.c
-          ADB_ROOT=$(find . -name "adb_root.c" -path "*kernelsu*" -type f 2>/dev/null | head -1)
-          echo "  Found adb_root.c at: $ADB_ROOT"
-          if [ -f "$ADB_ROOT" ] && grep -q "ALIGN_DOWN" "$ADB_ROOT" && ! grep -q "ifndef ALIGN_DOWN" "$ADB_ROOT"; then
-            sed -i '1i #include <linux/version.h>\n#if LINUX_VERSION_CODE < KERNEL_VERSION(4,6,0)\n#ifndef ALIGN_DOWN\n#define ALIGN_DOWN(x, a) __ALIGN_KERNEL((x) - ((a) - 1), (a))\n#endif\n#endif' "$ADB_ROOT"
-            echo "  Added ALIGN_DOWN compat to $ADB_ROOT"
-          fi
-          
+
+          # 4. Verify
+          echo "=== Patched struct ==="
+          grep -A6 "struct ksu_get_info_cmd" "$SUPERCALL" | head -8
+          echo "=== Patched initializer ==="
+          grep "ksu_get_info_cmd cmd" "$DISPATCH"
+
           echo "  Manager compat patches done"
       - name: Build kernel
         working-directory: kernel_source
