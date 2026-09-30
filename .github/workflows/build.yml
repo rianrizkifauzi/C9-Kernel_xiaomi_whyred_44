@@ -993,23 +993,32 @@ jobs:
           echo "=== Patched initializer ==="
           grep "ksu_get_info_cmd cmd" "$DISPATCH"
 
-          # 5. Fix IOCTL_GET_INFO to include sized version (manager v3.4.0 uses _IOR with struct size)
-          if [ -f "$SUPERCALL" ] && ! grep -q "KSU_IOCTL_GET_INFO_LEGACY" "$SUPERCALL"; then
-            # Rename old GET_INFO to LEGACY and add new sized version
-            sed -i 's|static const __u32 KSU_IOCTL_GET_INFO = _IOC(_IOC_READ, .K., 2, 0);|static const __u32 KSU_IOCTL_GET_INFO = _IOR('\''K'\'', 2, struct ksu_get_info_cmd);\nstatic const __u32 KSU_IOCTL_GET_INFO_LEGACY = _IOC(_IOC_READ, '\''K'\'', 2, 0);|' "$SUPERCALL"
-            echo "  Added KSU_IOCTL_GET_INFO (sized) + LEGACY"
+          # 5. Patch dispatch handler to accept new-style IOCTL from manager v3.4.0
+          # Manager sends _IOR('K',2,struct) with size=16, kernel only knows size=0
+          # Solution: add early return in ksu_supercall_handle_ioctl for type=K nr=2
+          if [ -f "$DISPATCH" ] && ! grep -q "remap new-style" "$DISPATCH"; then
+            # Create a small C patch file
+            cat > /tmp/ioctl_remap.patch << 'EOPATCH'
+--- a/dispatch.c
++++ b/dispatch.c
+@@ ksu_supercall_handle_ioctl @@
+ {
+ 	int i;
++
++	/* remap new-style GET_INFO ioctl (with struct size) to legacy handler */
++	if (_IOC_TYPE(cmd) == 'K' && _IOC_NR(cmd) == 2 && (_IOC_DIR(cmd) & _IOC_READ))
++		return do_get_info(argp);
++
+EOPATCH
+            # Apply manually: insert after "int i;" in ksu_supercall_handle_ioctl
+            sed -i '/^long ksu_supercall_handle_ioctl/,/int i;/{
+              /int i;/a\\n\t/* remap new-style GET_INFO ioctl (with struct size) to legacy handler */\n\tif (_IOC_TYPE(cmd) == '\''K'\'' \&\& _IOC_NR(cmd) == 2 \&\& (_IOC_DIR(cmd) \& _IOC_READ))\n\t\treturn do_get_info(argp);
+            }' "$DISPATCH"
+            echo "  Added IOCTL remap in ksu_supercall_handle_ioctl"
           fi
           
-          # 6. Register LEGACY ioctl handler in dispatch.c handler table
-          if [ -f "$DISPATCH" ] && ! grep -q "KSU_IOCTL_GET_INFO_LEGACY" "$DISPATCH"; then
-            sed -i '/\.cmd = KSU_IOCTL_GET_INFO,/a\\t}, {\n\t\t.name = "get_info_legacy",\n\t\t.cmd = KSU_IOCTL_GET_INFO_LEGACY,\n\t\t.handler = do_get_info,' "$DISPATCH"
-            echo "  Registered LEGACY ioctl handler"
-          fi
-          
-          echo "  === IOCTL defs ==="
-          grep "KSU_IOCTL_GET_INFO" "$SUPERCALL"
-          echo "  === Handler table ==="
-          grep -A2 "get_info" "$DISPATCH" | head -10
+          echo "  === Verify remap ==="
+          grep -A8 "ksu_supercall_handle_ioctl" "$DISPATCH" | head -12
 
           echo "  Manager compat patches done"
       - name: Build kernel
