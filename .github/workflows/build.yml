@@ -995,19 +995,22 @@ jobs:
 
           # 5. Patch dispatch.c: remap new IOCTL for manager v3.4.0 compat
           if [ -f "$DISPATCH" ] && ! grep -q "remap new-style" "$DISPATCH"; then
-            python3 -c "
+            cat > /tmp/patch_ioctl.py << 'PYEOF'
 import sys
 f = sys.argv[1]
-with open(f) as fh: src = fh.read()
-old = 'long ksu_supercall_handle_ioctl(unsigned int cmd, void __user *argp)\n{\n\tint i;'
-new = old + '\n\n\t/* remap new-style GET_INFO ioctl (with struct size) to legacy handler */\n\tif (_IOC_TYPE(cmd) == \x27K\x27 && _IOC_NR(cmd) == 2 && (_IOC_DIR(cmd) & _IOC_READ))\n\t\treturn do_get_info(argp);'
-if old in src:
-  src = src.replace(old, new)
-  with open(f, 'w') as fh: fh.write(src)
-  print('  Injected IOCTL remap into ksu_supercall_handle_ioctl')
+with open(f) as fh:
+    src = fh.read()
+target = "long ksu_supercall_handle_ioctl(unsigned int cmd, void __user *argp)\n{\n\tint i;"
+inject = "\n\n\t/* remap new-style GET_INFO ioctl (with struct size) to legacy handler */\n\tif (_IOC_TYPE(cmd) == 'K' && _IOC_NR(cmd) == 2 && (_IOC_DIR(cmd) & _IOC_READ))\n\t\treturn do_get_info(argp);"
+if target in src:
+    src = src.replace(target, target + inject)
+    with open(f, "w") as fh:
+        fh.write(src)
+    print("  Injected IOCTL remap into ksu_supercall_handle_ioctl")
 else:
-  print('  WARNING: pattern not found in dispatch.c')
-            " "$DISPATCH"
+    print("  WARNING: handler pattern not found")
+PYEOF
+            python3 /tmp/patch_ioctl.py "$DISPATCH"
           fi
 
           echo "  === Verify remap ==="
