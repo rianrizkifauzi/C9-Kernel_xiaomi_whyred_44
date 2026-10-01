@@ -1003,86 +1003,13 @@ jobs:
 
           echo "  Manager compat patches done"
 
-      - name: Inject sepolicy rules for NetworkStack WiFi and Zygisk
+
+      - name: Inject sepolicy rules for NetworkStack and Zygisk
         if: env.SKIP_BUILD != 'true'
         run: |
-          KSU_DIR="${{ env.KSU_DIR }}"
-          echo "=== Inject sepolicy rules into apply_kernelsu_rules_fn ==="
-          RULES_C=""
-          for cand in "${KSU_DIR}/kernel/selinux/rules.c" "drivers/kernelsu/selinux/rules.c"; do
-            if [ -f "$cand" ]; then RULES_C="$cand"; break; fi
-          done
-          if [ -z "$RULES_C" ]; then
-            echo "::warning::rules.c not found"
-            exit 0
-          fi
-          echo "  Found: $RULES_C"
-
-          PATCH_PY=$(cat << 'ENDPY'
-import sys, re
-path = sys.argv[1]
-with open(path, "r") as f:
-    c = f.read()
-if "network_stack" in c:
-    print("  Already patched"); sys.exit(0)
-marker = 'ksu_allow(db, "system_server", KERNEL_SU_DOMAIN, "process", "sigkill");'
-rules = []
-rules.append(marker)
-rules.append("")
-rules.append("    // ======== NetworkStack + WiFi + Zygisk sepolicy (kernel 4.4) ========")
-rules.append('    ksu_type(db, "network_stack", "domain");')
-rules.append('    ksu_typeattribute(db, "network_stack", "domain");')
-rules.append('    ksu_allow(db, "network_stack", "network_stack", "process", ALL);')
-rules.append('    ksu_allow(db, "network_stack", "system_server", "binder", ALL);')
-rules.append('    ksu_allow(db, "network_stack", "radio_data_file", "file", ALL);')
-rules.append('    ksu_allow(db, "network_stack", "radio_data_file", "dir", ALL);')
-rules.append('    ksu_allow(db, "hal_wifi_default", "vendor_default_prop", "property_service", "set");')
-rules.append('    ksu_allow(db, "hal_wifi_default", "vendor_default_prop", "file", "read");')
-rules.append('    ksu_allow(db, "hal_wifi_default", "vendor_default_prop", "file", "open");')
-rules.append('    ksu_allow(db, "hal_wifi_default", "vendor_default_prop", "file", "getattr");')
-rules.append('    ksu_allow(db, "hal_camera_default", "vendor_default_prop", "property_service", "set");')
-rules.append('    ksu_allow(db, "vendor_init", "radio_prop", "property_service", "set");')
-rules.append('    ksu_allow(db, "vendor_init", "default_prop", "property_service", "set");')
-rules.append('    ksu_allow(db, "vendor_init", "default_prop", "file", "read");')
-rules.append('    ksu_allow(db, "vendor_init", "thermal_prop", "file", "read");')
-rules.append('    ksu_type(db, "magisk_file", "file_type");')
-rules.append('    ksu_typeattribute(db, "magisk_file", "mlstrustedobject");')
-rules.append('    ksu_allow(db, ALL, "magisk_file", "file", ALL);')
-rules.append('    ksu_allow(db, ALL, "magisk_file", "dir", ALL);')
-rules.append('    ksu_allow(db, ALL, "magisk_file", "fifo_file", ALL);')
-rules.append('    ksu_allow(db, ALL, "magisk_file", "chr_file", ALL);')
-rules.append('    ksu_allow(db, ALL, "magisk_file", "lnk_file", ALL);')
-rules.append('    ksu_allow(db, ALL, "magisk_file", "sock_file", ALL);')
-rules.append('    ksu_allow(db, "system_server", "system_server", "process", "execmem");')
-rules.append('    ksu_allow(db, "zygote", "zygote", "process", "execmem");')
-rules.append('    ksu_allow(db, "zygote", "adb_data_file", "dir", "search");')
-rules.append('    ksu_allow(db, "zygote", "fs_type", "filesystem", "unmount");')
-rules.append('    ksu_allow(db, "zygote", "unlabeled", "file", "open");')
-rules.append('    ksu_allow(db, "zygote", "unlabeled", "file", "read");')
-rules.append('    ksu_allow(db, "zygote", "unlabeled", "file", "getattr");')
-rules.append('    ksu_allow(db, "zygote", "zygote", "capability", "sys_chroot");')
-rules.append('    ksu_allow(db, "zygote", "nsfs", "file", "open");')
-rules.append('    ksu_allow(db, "zygote", "nsfs", "file", "read");')
-rules.append('    ksu_allow(db, "init", "adb_data_file", "file", "execute");')
-rules.append('    ksu_allow(db, "init", "adb_data_file", "file", "execute_no_trans");')
-rules.append('    ksu_allow(db, "init", "tmpfs", "dir", ALL);')
-rules.append('    ksu_allow(db, "init", "tmpfs", "file", ALL);')
-rules.append("    // ======== End sepolicy ========")
-inject = "\n".join(rules)
-if marker in c:
-    c = c.replace(marker, inject)
-    with open(path, "w") as f:
-        f.write(c)
-    print("  Injected sepolicy rules OK")
-else:
-    print("  ERROR: marker not found")
-    sys.exit(1)
-ENDPY
-          )
-          echo "$PATCH_PY" > /tmp/patch_rules.py
-          python3 /tmp/patch_rules.py "$RULES_C"
-          grep -c "network_stack\|magisk_file" "$RULES_C"
-          echo "^ sepolicy rule count"
+          echo "=== Injecting sepolicy rules ==="
+          echo "CmltcG9ydCBzeXMsIG9zCgojIEZpbmQgcnVsZXMuYwprc3VfZGlyID0gb3MuZW52aXJvbi5nZXQoIktTVV9ESVIiLCAiIikKcnVsZXNfYyA9ICIiCmZvciBjYW5kIGluIFtmIntrc3VfZGlyfS9rZXJuZWwvc2VsaW51eC9ydWxlcy5jIiwgImRyaXZlcnMva2VybmVsc3Uvc2VsaW51eC9ydWxlcy5jIl06CiAgICBpZiBvcy5wYXRoLmlzZmlsZShjYW5kKToKICAgICAgICBydWxlc19jID0gY2FuZAogICAgICAgIGJyZWFrCgppZiBub3QgcnVsZXNfYzoKICAgIHByaW50KCJydWxlcy5jIG5vdCBmb3VuZCAtIHNraXAiKQogICAgc3lzLmV4aXQoMCkKCnByaW50KGYiICBQYXRjaGluZzoge3J1bGVzX2N9IikKd2l0aCBvcGVuKHJ1bGVzX2MsICJyIikgYXMgZjoKICAgIGMgPSBmLnJlYWQoKQoKaWYgIm5ldHdvcmtfc3RhY2siIGluIGM6CiAgICBwcmludCgiICBBbHJlYWR5IHBhdGNoZWQiKQogICAgc3lzLmV4aXQoMCkKCm1hcmtlciA9ICdrc3VfYWxsb3coZGIsICJzeXN0ZW1fc2VydmVyIiwgS0VSTkVMX1NVX0RPTUFJTiwgInByb2Nlc3MiLCAic2lna2lsbCIpOycKaWYgbWFya2VyIG5vdCBpbiBjOgogICAgcHJpbnQoIiAgRVJST1I6IG1hcmtlciBub3QgZm91bmQgaW4gcnVsZXMuYyIpCiAgICBzeXMuZXhpdCgxKQoKcnVsZXNfYmxvY2sgPSBtYXJrZXIgKyAiXG4iCnJ1bGVzX2Jsb2NrICs9ICJcbiIKcnVsZXNfYmxvY2sgKz0gJyAgICAvLyA9PT09PT09PSBOZXR3b3JrU3RhY2sgKyBXaUZpICsgWnlnaXNrIHNlcG9saWN5IChrZXJuZWwgNC40IGNvbXBhdCkgPT09PT09PT1cbicKcnVsZXNfYmxvY2sgKz0gJyAgICAvLyBGaXggTmV0d29ya1N0YWNrIFNJR0FCUlQ6IHNlbGludXhfYW5kcm9pZF9zZXRjb250ZXh0IG5lZWRzIHRoZXNlIHR5cGVzXG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X3R5cGUoZGIsICJuZXR3b3JrX3N0YWNrIiwgImRvbWFpbiIpO1xuJwpydWxlc19ibG9jayArPSAnICAgIGtzdV90eXBlYXR0cmlidXRlKGRiLCAibmV0d29ya19zdGFjayIsICJkb21haW4iKTtcbicKcnVsZXNfYmxvY2sgKz0gJyAgICBrc3VfYWxsb3coZGIsICJuZXR3b3JrX3N0YWNrIiwgIm5ldHdvcmtfc3RhY2siLCAicHJvY2VzcyIsIEFMTCk7XG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X2FsbG93KGRiLCAibmV0d29ya19zdGFjayIsICJzeXN0ZW1fc2VydmVyIiwgImJpbmRlciIsIEFMTCk7XG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X2FsbG93KGRiLCAibmV0d29ya19zdGFjayIsICJyYWRpb19kYXRhX2ZpbGUiLCAiZmlsZSIsIEFMTCk7XG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X2FsbG93KGRiLCAibmV0d29ya19zdGFjayIsICJyYWRpb19kYXRhX2ZpbGUiLCAiZGlyIiwgQUxMKTtcbicKcnVsZXNfYmxvY2sgKz0gJyAgICAvLyBXaUZpIEhBTCB2ZW5kb3IgcHJvcGVydHkgYWNjZXNzXG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X2FsbG93KGRiLCAiaGFsX3dpZmlfZGVmYXVsdCIsICJ2ZW5kb3JfZGVmYXVsdF9wcm9wIiwgInByb3BlcnR5X3NlcnZpY2UiLCAic2V0Iik7XG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X2FsbG93KGRiLCAiaGFsX3dpZmlfZGVmYXVsdCIsICJ2ZW5kb3JfZGVmYXVsdF9wcm9wIiwgImZpbGUiLCAicmVhZCIpO1xuJwpydWxlc19ibG9jayArPSAnICAgIGtzdV9hbGxvdyhkYiwgImhhbF93aWZpX2RlZmF1bHQiLCAidmVuZG9yX2RlZmF1bHRfcHJvcCIsICJmaWxlIiwgIm9wZW4iKTtcbicKcnVsZXNfYmxvY2sgKz0gJyAgICBrc3VfYWxsb3coZGIsICJoYWxfd2lmaV9kZWZhdWx0IiwgInZlbmRvcl9kZWZhdWx0X3Byb3AiLCAiZmlsZSIsICJnZXRhdHRyIik7XG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X2FsbG93KGRiLCAiaGFsX2NhbWVyYV9kZWZhdWx0IiwgInZlbmRvcl9kZWZhdWx0X3Byb3AiLCAicHJvcGVydHlfc2VydmljZSIsICJzZXQiKTtcbicKcnVsZXNfYmxvY2sgKz0gJyAgICBrc3VfYWxsb3coZGIsICJ2ZW5kb3JfaW5pdCIsICJyYWRpb19wcm9wIiwgInByb3BlcnR5X3NlcnZpY2UiLCAic2V0Iik7XG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X2FsbG93KGRiLCAidmVuZG9yX2luaXQiLCAiZGVmYXVsdF9wcm9wIiwgInByb3BlcnR5X3NlcnZpY2UiLCAic2V0Iik7XG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X2FsbG93KGRiLCAidmVuZG9yX2luaXQiLCAiZGVmYXVsdF9wcm9wIiwgImZpbGUiLCAicmVhZCIpO1xuJwpydWxlc19ibG9jayArPSAnICAgIGtzdV9hbGxvdyhkYiwgInZlbmRvcl9pbml0IiwgInRoZXJtYWxfcHJvcCIsICJmaWxlIiwgInJlYWQiKTtcbicKcnVsZXNfYmxvY2sgKz0gJyAgICAvLyBaeWdpc2sgZmlsZSB0eXBlXG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X3R5cGUoZGIsICJtYWdpc2tfZmlsZSIsICJmaWxlX3R5cGUiKTtcbicKcnVsZXNfYmxvY2sgKz0gJyAgICBrc3VfdHlwZWF0dHJpYnV0ZShkYiwgIm1hZ2lza19maWxlIiwgIm1sc3RydXN0ZWRvYmplY3QiKTtcbicKcnVsZXNfYmxvY2sgKz0gJyAgICBrc3VfYWxsb3coZGIsIEFMTCwgIm1hZ2lza19maWxlIiwgImZpbGUiLCBBTEwpO1xuJwpydWxlc19ibG9jayArPSAnICAgIGtzdV9hbGxvdyhkYiwgQUxMLCAibWFnaXNrX2ZpbGUiLCAiZGlyIiwgQUxMKTtcbicKcnVsZXNfYmxvY2sgKz0gJyAgICBrc3VfYWxsb3coZGIsIEFMTCwgIm1hZ2lza19maWxlIiwgImZpZm9fZmlsZSIsIEFMTCk7XG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X2FsbG93KGRiLCBBTEwsICJtYWdpc2tfZmlsZSIsICJjaHJfZmlsZSIsIEFMTCk7XG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X2FsbG93KGRiLCBBTEwsICJtYWdpc2tfZmlsZSIsICJsbmtfZmlsZSIsIEFMTCk7XG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X2FsbG93KGRiLCBBTEwsICJtYWdpc2tfZmlsZSIsICJzb2NrX2ZpbGUiLCBBTEwpO1xuJwpydWxlc19ibG9jayArPSAnICAgIC8vIFp5Z290ZSBmb3IgWnlnaXNrXG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X2FsbG93KGRiLCAic3lzdGVtX3NlcnZlciIsICJzeXN0ZW1fc2VydmVyIiwgInByb2Nlc3MiLCAiZXhlY21lbSIpO1xuJwpydWxlc19ibG9jayArPSAnICAgIGtzdV9hbGxvdyhkYiwgInp5Z290ZSIsICJ6eWdvdGUiLCAicHJvY2VzcyIsICJleGVjbWVtIik7XG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X2FsbG93KGRiLCAienlnb3RlIiwgImFkYl9kYXRhX2ZpbGUiLCAiZGlyIiwgInNlYXJjaCIpO1xuJwpydWxlc19ibG9jayArPSAnICAgIGtzdV9hbGxvdyhkYiwgInp5Z290ZSIsICJmc190eXBlIiwgImZpbGVzeXN0ZW0iLCAidW5tb3VudCIpO1xuJwpydWxlc19ibG9jayArPSAnICAgIGtzdV9hbGxvdyhkYiwgInp5Z290ZSIsICJ1bmxhYmVsZWQiLCAiZmlsZSIsICJvcGVuIik7XG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X2FsbG93KGRiLCAienlnb3RlIiwgInVubGFiZWxlZCIsICJmaWxlIiwgInJlYWQiKTtcbicKcnVsZXNfYmxvY2sgKz0gJyAgICBrc3VfYWxsb3coZGIsICJ6eWdvdGUiLCAidW5sYWJlbGVkIiwgImZpbGUiLCAiZ2V0YXR0ciIpO1xuJwpydWxlc19ibG9jayArPSAnICAgIGtzdV9hbGxvdyhkYiwgInp5Z290ZSIsICJ6eWdvdGUiLCAiY2FwYWJpbGl0eSIsICJzeXNfY2hyb290Iik7XG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X2FsbG93KGRiLCAienlnb3RlIiwgIm5zZnMiLCAiZmlsZSIsICJvcGVuIik7XG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X2FsbG93KGRiLCAienlnb3RlIiwgIm5zZnMiLCAiZmlsZSIsICJyZWFkIik7XG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAgLy8ga3N1ZCBkYWVtb25cbicKcnVsZXNfYmxvY2sgKz0gJyAgICBrc3VfYWxsb3coZGIsICJpbml0IiwgImFkYl9kYXRhX2ZpbGUiLCAiZmlsZSIsICJleGVjdXRlIik7XG4nCnJ1bGVzX2Jsb2NrICs9ICcgICAga3N1X2FsbG93KGRiLCAiaW5pdCIsICJhZGJfZGF0YV9maWxlIiwgImZpbGUiLCAiZXhlY3V0ZV9ub190cmFucyIpO1xuJwpydWxlc19ibG9jayArPSAnICAgIGtzdV9hbGxvdyhkYiwgImluaXQiLCAidG1wZnMiLCAiZGlyIiwgQUxMKTtcbicKcnVsZXNfYmxvY2sgKz0gJyAgICBrc3VfYWxsb3coZGIsICJpbml0IiwgInRtcGZzIiwgImZpbGUiLCBBTEwpO1xuJwpydWxlc19ibG9jayArPSAnICAgIC8vID09PT09PT09IEVuZCBzZXBvbGljeSA9PT09PT09PScKCmMgPSBjLnJlcGxhY2UobWFya2VyLCBydWxlc19ibG9jaykKd2l0aCBvcGVuKHJ1bGVzX2MsICJ3IikgYXMgZjoKICAgIGYud3JpdGUoYykKcHJpbnQoIiAgSW5qZWN0ZWQgc2Vwb2xpY3kgcnVsZXMgT0siKQo=" | base64 -d | python3
+          echo "Done"
 
       - name: Build kernel
         working-directory: kernel_source
