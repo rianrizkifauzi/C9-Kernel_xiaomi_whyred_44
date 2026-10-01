@@ -1035,7 +1035,52 @@ jobs:
             echo "  Fixed: $f"
             FIXES=$((FIXES + 1))
           done < <(grep -rl 'linux/compiler_types.h' "$KSU_KERNEL_DIR" 2>/dev/null || true)
-          echo "  Total files fixed: $FIXES"
+          echo "  compiler_types fixes: $FIXES"
+
+          # === Fix 2: sched/*.h headers (split from linux/sched.h in 4.11) ===
+          echo ""
+          echo "  --- Fix 2: sched/*.h -> sched.h ---"
+          SCHED_HEADERS="linux/sched/signal.h linux/sched/mm.h linux/sched/task.h linux/sched/clock.h linux/sched/types.h linux/sched/task_stack.h linux/sched/cputime.h"
+          FIXES2=0
+          for hdr in $SCHED_HEADERS; do
+            while IFS= read -r f; do
+              sed -i "s|#include <${hdr}>|#include <linux/sched.h>|g" "$f"
+              echo "    Fixed $hdr in: $f"
+              FIXES2=$((FIXES2 + 1))
+            done < <(grep -rl "$hdr" "$KSU_KERNEL_DIR" 2>/dev/null || true)
+          done
+          echo "  sched fixes: $FIXES2"
+
+          # === Fix 3: __poll_t / EPOLL* (introduced 4.16) ===
+          echo ""
+          echo "  --- Fix 3: __poll_t compat ---"
+          COMPAT_HEADER="$KSU_KERNEL_DIR/ksu_compat_poll.h"
+          if grep -rq '__poll_t' "$KSU_KERNEL_DIR" 2>/dev/null; then
+            cat > "$COMPAT_HEADER" << 'POLLEOF'
+#ifndef _KSU_COMPAT_POLL_H
+#define _KSU_COMPAT_POLL_H
+#include <linux/types.h>
+#include <linux/poll.h>
+typedef unsigned int __poll_t;
+#ifndef EPOLLIN
+#define EPOLLIN   0x001
+#define EPOLLOUT  0x004
+#define EPOLLERR  0x008
+#define EPOLLHUP  0x010
+#define EPOLLRDNORM 0x040
+#define EPOLLWRNORM 0x100
+#endif
+#endif
+POLLEOF
+            echo "    Created: $COMPAT_HEADER"
+            while IFS= read -r f; do
+              if ! grep -q 'ksu_compat_poll.h' "$f"; then
+                sed -i '1i\#include "ksu_compat_poll.h"' "$f"
+                echo "    Injected compat header in: $f"
+              fi
+            done < <(grep -rl '__poll_t' "$KSU_KERNEL_DIR" 2>/dev/null || true)
+          fi
+          echo "  Total fixes applied: $((FIXES + FIXES2))"
 
       - name: Build kernel
         working-directory: kernel_source
