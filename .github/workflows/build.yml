@@ -1013,74 +1013,230 @@ jobs:
           echo "Done"
 
 
-      - name: Fix compiler_types.h for kernel 4.4
+      - name: Fix KSU-Next header compat for kernel 4.4
         if: env.SKIP_BUILD != 'true'
         working-directory: kernel_source
         run: |
-          echo "=== Fix compiler_types.h -> compiler.h for kernel < 4.14 ==="
-          KSU_KERNEL_DIR="${{ env.KSU_DIR }}"
+          set -e
+          echo "=== Fix KSU-Next compat for kernel < 4.16 ==="
+          KV_MAJOR=$(echo "${KERNEL_VERSION}" | cut -d. -f1)
+          KV_MINOR=$(echo "${KERNEL_VERSION}" | cut -d. -f2)
+
+          KSU_KERNEL_DIR=""
+          for cand in "${KSU_DIR}/kernel" "drivers/kernelsu"; do
+            if [ -d "$cand" ]; then KSU_KERNEL_DIR="$cand"; break; fi
+          done
+
           if [ -z "$KSU_KERNEL_DIR" ]; then
-            for d in KernelSU KernelSU-Next drivers/kernelsu; do
-              if [ -d "$d" ]; then KSU_KERNEL_DIR="$d"; break; fi
-            done
-          fi
-          if [ -z "$KSU_KERNEL_DIR" ]; then
-            echo "KSU dir not found - skip"
+            echo "  ⚠️  KSU kernel dir not found — skipping"
             exit 0
           fi
+
           echo "  KSU dir: $KSU_KERNEL_DIR"
+          echo "  Kernel: ${KERNEL_VERSION} (major=${KV_MAJOR}, minor=${KV_MINOR})"
           FIXES=0
-          while IFS= read -r f; do
-            sed -i 's|#include <linux/compiler_types.h>|#include <linux/compiler.h>|g' "$f"
-            echo "  Fixed: $f"
-            FIXES=$((FIXES + 1))
-          done < <(grep -rl 'linux/compiler_types.h' "$KSU_KERNEL_DIR" 2>/dev/null || true)
-          echo "  compiler_types fixes: $FIXES"
 
-          # === Fix 2: sched/*.h headers (split from linux/sched.h in 4.11) ===
-          echo ""
-          echo "  --- Fix 2: sched/*.h -> sched.h ---"
-          SCHED_HEADERS="linux/sched/signal.h linux/sched/mm.h linux/sched/task.h linux/sched/clock.h linux/sched/types.h linux/sched/task_stack.h linux/sched/cputime.h"
-          FIXES2=0
-          for hdr in $SCHED_HEADERS; do
+          # === Fix 1: compiler_types.h (introduced 4.14) ===
+          if [ "$KV_MAJOR" -lt 4 ] || ([ "$KV_MAJOR" -eq 4 ] && [ "$KV_MINOR" -lt 14 ]); then
+            echo ""
+            echo "  --- Fix 1: compiler_types.h → compiler.h ---"
             while IFS= read -r f; do
-              sed -i "s|#include <${hdr}>|#include <linux/sched.h>|g" "$f"
-              echo "    Fixed $hdr in: $f"
-              FIXES2=$((FIXES2 + 1))
-            done < <(grep -rl "$hdr" "$KSU_KERNEL_DIR" 2>/dev/null || true)
-          done
-          echo "  sched fixes: $FIXES2"
+              sed -i 's|#include <linux/compiler_types.h>|#include <linux/compiler.h>|g' "$f"
+              echo "    ✅ $f"
+              FIXES=$((FIXES + 1))
+            done < <(grep -rl 'linux/compiler_types.h' "$KSU_KERNEL_DIR" 2>/dev/null || true)
+          fi
 
-          # === Fix 3: __poll_t / EPOLL* (introduced 4.16) ===
-          echo ""
-          echo "  --- Fix 3: __poll_t compat ---"
-          COMPAT_HEADER="$KSU_KERNEL_DIR/ksu_compat_poll.h"
-          if grep -rq '__poll_t' "$KSU_KERNEL_DIR" 2>/dev/null; then
-            cat > "$COMPAT_HEADER" << 'POLLEOF'
-#ifndef _KSU_COMPAT_POLL_H
-#define _KSU_COMPAT_POLL_H
-#include <linux/types.h>
-#include <linux/poll.h>
-typedef unsigned int __poll_t;
-#ifndef EPOLLIN
-#define EPOLLIN   0x001
-#define EPOLLOUT  0x004
-#define EPOLLERR  0x008
-#define EPOLLHUP  0x010
-#define EPOLLRDNORM 0x040
-#define EPOLLWRNORM 0x100
-#endif
-#endif
-POLLEOF
-            echo "    Created: $COMPAT_HEADER"
+          # === Fix 2: __poll_t and EPOLL* (introduced 4.16) ===
+          if [ "$KV_MAJOR" -lt 4 ] || ([ "$KV_MAJOR" -eq 4 ] && [ "$KV_MINOR" -lt 16 ]); then
+            echo ""
+            echo "  --- Fix 2: __poll_t / EPOLL* compat (kernel < 4.16) ---"
+
+            # Create a compat header that maps new poll types to old ones
+            COMPAT_HEADER="$KSU_KERNEL_DIR/ksu_compat_poll.h"
+            cat > "$COMPAT_HEADER" << 'COMPAT_EOF'
+          #ifndef _KSU_COMPAT_POLL_H
+          #define _KSU_COMPAT_POLL_H
+
+          #include <linux/version.h>
+
+          #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 16, 0)
+          /*
+           * Kernel 4.16 introduced __poll_t and EPOLL* constants.
+           * For older kernels, map them back to the POLL* equivalents.
+           */
+          #include <linux/poll.h>
+          #include <asm/poll.h>
+
+          typedef unsigned int __poll_t;
+
+          #ifndef EPOLLIN
+          #define EPOLLIN      POLLIN
+          #endif
+          #ifndef EPOLLOUT
+          #define EPOLLOUT     POLLOUT
+          #endif
+          #ifndef EPOLLHUP
+          #define EPOLLHUP     POLLHUP
+          #endif
+          #ifndef EPOLLERR
+          #define EPOLLERR     POLLERR
+          #endif
+          #ifndef EPOLLRDNORM
+          #define EPOLLRDNORM  POLLRDNORM
+          #endif
+          #ifndef EPOLLWRNORM
+          #define EPOLLWRNORM  POLLWRNORM
+          #endif
+          #ifndef EPOLLRDBAND
+          #define EPOLLRDBAND  POLLRDBAND
+          #endif
+          #ifndef EPOLLWRBAND
+          #define EPOLLWRBAND  POLLWRBAND
+          #endif
+
+          #endif /* LINUX_VERSION_CODE < 4.16.0 */
+          #endif /* _KSU_COMPAT_POLL_H */
+          COMPAT_EOF
+            # Fix indentation in generated file
+            sed -i 's/^          //' "$COMPAT_HEADER"
+            echo "    ✅ Created $COMPAT_HEADER"
+
+            # Find all .c and .h files that use __poll_t or EPOLL*
             while IFS= read -r f; do
+              # Skip the compat header itself
+              [ "$f" = "$COMPAT_HEADER" ] && continue
+              # Add include at top of file (after existing includes)
               if ! grep -q 'ksu_compat_poll.h' "$f"; then
                 sed -i '1i\#include "ksu_compat_poll.h"' "$f"
-                echo "    Injected compat header in: $f"
+                echo "    ✅ Injected compat include: $f"
+                FIXES=$((FIXES + 1))
               fi
-            done < <(grep -rl '__poll_t' "$KSU_KERNEL_DIR" 2>/dev/null || true)
+            done < <(grep -rlE '__poll_t|EPOLLIN|EPOLLOUT|EPOLLHUP|EPOLLERR|EPOLLRDNORM|EPOLLWRNORM' "$KSU_KERNEL_DIR" 2>/dev/null || true)
           fi
-          echo "  Total fixes applied: $((FIXES + FIXES2))"
+
+          # === Fix 3: struct wait_queue_head → wait_queue_head_t (older naming) ===
+          if [ "$KV_MAJOR" -lt 4 ] || ([ "$KV_MAJOR" -eq 4 ] && [ "$KV_MINOR" -lt 13 ]); then
+            echo ""
+            echo "  --- Fix 3: wait_queue_head struct compat ---"
+            while IFS= read -r f; do
+              # Only fix if struct wait_queue_head is used WITHOUT _t suffix
+              if grep -qP 'struct wait_queue_head[^_]' "$f"; then
+                sed -i 's/struct wait_queue_head\b/wait_queue_head_t/g' "$f"
+                echo "    ✅ Fixed wait_queue_head: $f"
+                FIXES=$((FIXES + 1))
+              fi
+            done < <(grep -rlP 'struct wait_queue_head[^_]' "$KSU_KERNEL_DIR" 2>/dev/null || true)
+          fi
+
+          # === Fix 4: split sched headers (kernel 4.11 split linux/sched.h) ===
+          if [ "$KV_MAJOR" -lt 4 ] || ([ "$KV_MAJOR" -eq 4 ] && [ "$KV_MINOR" -lt 11 ]); then
+            echo ""
+            echo "  --- Fix 4: sched header split compat (kernel < 4.11) ---"
+
+            # These headers were split out from linux/sched.h in 4.11:
+            # linux/sched/signal.h, linux/sched/mm.h, linux/sched/task.h,
+            # linux/sched/clock.h, linux/sched/types.h, etc.
+            SCHED_HEADERS="linux/sched/signal.h linux/sched/mm.h linux/sched/task.h linux/sched/clock.h linux/sched/types.h linux/sched/task_stack.h linux/sched/cputime.h"
+
+            for hdr in $SCHED_HEADERS; do
+              while IFS= read -r f; do
+                sed -i "s|#include <${hdr}>|#include <linux/sched.h>|g" "$f"
+                echo "    ✅ $f: ${hdr} → linux/sched.h"
+                FIXES=$((FIXES + 1))
+              done < <(grep -rl "${hdr}" "$KSU_KERNEL_DIR" 2>/dev/null || true)
+            done
+          fi
+
+          # === Fix 5: force-include compat header for KSU driver (root-cause fix) ===
+          # KSU-Next legacy driver uses kernel macros/functions newer than 4.4
+          # (in_compat_syscall 4.6, ALIGN_DOWN 4.16, etc). Instead of whack-a-mole,
+          # force-include ONE compat header into every KSU compilation unit via
+          # subdir-ccflags-y -include (covers all subdirs: sulog/, feature/, etc).
+          if [ "$KV_MAJOR" -lt 4 ] || ([ "$KV_MAJOR" -eq 4 ] && [ "$KV_MINOR" -lt 16 ]); then
+            echo ""
+            echo "  --- Fix 5: force-include ksu_compat44.h into KSU driver ---"
+            COMPAT44="$KSU_KERNEL_DIR/ksu_compat44.h"
+            cat > "$COMPAT44" << 'C44_EOF'
+          #ifndef _KSU_COMPAT44_H
+          #define _KSU_COMPAT44_H
+          #include <linux/version.h>
+          #include <linux/kernel.h>
+
+          /* ALIGN_DOWN: introduced 4.16 */
+          #ifndef ALIGN_DOWN
+          #define ALIGN_DOWN(x, a) __ALIGN_KERNEL((x) - ((a) - 1), (a))
+          #endif
+
+          /* in_compat_syscall(): introduced 4.6 (arm64 android has CONFIG_COMPAT=y) */
+          #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)
+          #include <linux/compat.h>
+          #ifndef in_compat_syscall
+          #define in_compat_syscall() is_compat_task()
+          #endif
+          #endif
+
+          /* array_size / struct_size: introduced 4.16 (linux/overflow.h absent on 4.4) */
+          #ifndef array_size
+          #define array_size(a, b) ((a) * (b))
+          #endif
+          #ifndef struct_size
+          #define struct_size(p, member, n) \
+              (sizeof(*(p)) + (n) * sizeof(*(p)->member))
+          #endif
+
+          #endif /* _KSU_COMPAT44_H */
+          C44_EOF
+            sed -i 's/^          //' "$COMPAT44"
+            COMPAT44_ABS="$(realpath "$COMPAT44")"
+            echo "    Created $COMPAT44 (abs: $COMPAT44_ABS)"
+
+            # Locate KSU Kbuild/Makefile and inject force-include for all subdirs
+            KSU_KBUILD=""
+            for cand in "$KSU_KERNEL_DIR/Kbuild" "$KSU_KERNEL_DIR/Makefile" "${KSU_DIR}/kernel/Kbuild" "drivers/kernelsu/Kbuild"; do
+              if [ -f "$cand" ]; then KSU_KBUILD="$cand"; break; fi
+            done
+            if [ -n "$KSU_KBUILD" ]; then
+              {
+                echo ""
+                echo "# === 4.4 compat: force-include compat header (workflow) ==="
+                echo "ccflags-y += -include $COMPAT44_ABS"
+                echo "subdir-ccflags-y += -include $COMPAT44_ABS"
+              } >> "$KSU_KBUILD"
+              echo "    ✅ Force-include appended to $KSU_KBUILD"
+              FIXES=$((FIXES + 1))
+            else
+              echo "::warning::KSU Kbuild not found — force-include not applied"
+            fi
+          fi
+
+          # === Fix 6: asm/set_memory.h (arm64 split at 4.13) ===
+          # KSU-Next legacy feature/selinux_hide.c includes <asm/set_memory.h>.
+          # On 4.4 set_memory_* live in <asm/cacheflush.h>. Provide a stub header
+          # in the kernel tree so the include resolves for the whole build.
+          if [ "$KV_MAJOR" -lt 4 ] || ([ "$KV_MAJOR" -eq 4 ] && [ "$KV_MINOR" -lt 13 ]); then
+            echo ""
+            echo "  --- Fix 6: asm/set_memory.h stub (kernel < 4.13) ---"
+            SM_HDR="arch/arm64/include/asm/set_memory.h"
+            if [ ! -f "$SM_HDR" ]; then
+              cat > "$SM_HDR" << 'SM_EOF'
+          #ifndef _KSU_COMPAT_ASM_SET_MEMORY_H
+          #define _KSU_COMPAT_ASM_SET_MEMORY_H
+          /* 4.4 compat: set_memory_* declared in asm/cacheflush.h before 4.13 split */
+          #include <asm/cacheflush.h>
+          #endif
+          SM_EOF
+              sed -i 's/^          //' "$SM_HDR"
+              echo "    ✅ Created stub $SM_HDR"
+              FIXES=$((FIXES + 1))
+            else
+              echo "    (set_memory.h already exists)"
+            fi
+          fi
+
+          echo ""
+          echo "  === Total fixes applied: $FIXES ==="
+
 
       - name: Build kernel
         working-directory: kernel_source
