@@ -1002,6 +1002,88 @@ jobs:
           grep -A10 "ksu_supercall_handle_ioctl" "$DISPATCH" | head -14
 
           echo "  Manager compat patches done"
+
+      - name: Inject sepolicy rules for NetworkStack WiFi and Zygisk
+        if: env.SKIP_BUILD != 'true'
+        run: |
+          KSU_DIR="${{ env.KSU_DIR }}"
+          echo "=== Inject sepolicy rules into apply_kernelsu_rules_fn ==="
+          RULES_C=""
+          for cand in "${KSU_DIR}/kernel/selinux/rules.c" "drivers/kernelsu/selinux/rules.c"; do
+            if [ -f "$cand" ]; then RULES_C="$cand"; break; fi
+          done
+          if [ -z "$RULES_C" ]; then
+            echo "::warning::rules.c not found"
+            exit 0
+          fi
+          echo "  Found: $RULES_C"
+
+          PATCH_PY=$(cat << 'ENDPY'
+import sys, re
+path = sys.argv[1]
+with open(path, "r") as f:
+    c = f.read()
+if "network_stack" in c:
+    print("  Already patched"); sys.exit(0)
+marker = 'ksu_allow(db, "system_server", KERNEL_SU_DOMAIN, "process", "sigkill");'
+rules = []
+rules.append(marker)
+rules.append("")
+rules.append("    // ======== NetworkStack + WiFi + Zygisk sepolicy (kernel 4.4) ========")
+rules.append('    ksu_type(db, "network_stack", "domain");')
+rules.append('    ksu_typeattribute(db, "network_stack", "domain");')
+rules.append('    ksu_allow(db, "network_stack", "network_stack", "process", ALL);')
+rules.append('    ksu_allow(db, "network_stack", "system_server", "binder", ALL);')
+rules.append('    ksu_allow(db, "network_stack", "radio_data_file", "file", ALL);')
+rules.append('    ksu_allow(db, "network_stack", "radio_data_file", "dir", ALL);')
+rules.append('    ksu_allow(db, "hal_wifi_default", "vendor_default_prop", "property_service", "set");')
+rules.append('    ksu_allow(db, "hal_wifi_default", "vendor_default_prop", "file", "read");')
+rules.append('    ksu_allow(db, "hal_wifi_default", "vendor_default_prop", "file", "open");')
+rules.append('    ksu_allow(db, "hal_wifi_default", "vendor_default_prop", "file", "getattr");')
+rules.append('    ksu_allow(db, "hal_camera_default", "vendor_default_prop", "property_service", "set");')
+rules.append('    ksu_allow(db, "vendor_init", "radio_prop", "property_service", "set");')
+rules.append('    ksu_allow(db, "vendor_init", "default_prop", "property_service", "set");')
+rules.append('    ksu_allow(db, "vendor_init", "default_prop", "file", "read");')
+rules.append('    ksu_allow(db, "vendor_init", "thermal_prop", "file", "read");')
+rules.append('    ksu_type(db, "magisk_file", "file_type");')
+rules.append('    ksu_typeattribute(db, "magisk_file", "mlstrustedobject");')
+rules.append('    ksu_allow(db, ALL, "magisk_file", "file", ALL);')
+rules.append('    ksu_allow(db, ALL, "magisk_file", "dir", ALL);')
+rules.append('    ksu_allow(db, ALL, "magisk_file", "fifo_file", ALL);')
+rules.append('    ksu_allow(db, ALL, "magisk_file", "chr_file", ALL);')
+rules.append('    ksu_allow(db, ALL, "magisk_file", "lnk_file", ALL);')
+rules.append('    ksu_allow(db, ALL, "magisk_file", "sock_file", ALL);')
+rules.append('    ksu_allow(db, "system_server", "system_server", "process", "execmem");')
+rules.append('    ksu_allow(db, "zygote", "zygote", "process", "execmem");')
+rules.append('    ksu_allow(db, "zygote", "adb_data_file", "dir", "search");')
+rules.append('    ksu_allow(db, "zygote", "fs_type", "filesystem", "unmount");')
+rules.append('    ksu_allow(db, "zygote", "unlabeled", "file", "open");')
+rules.append('    ksu_allow(db, "zygote", "unlabeled", "file", "read");')
+rules.append('    ksu_allow(db, "zygote", "unlabeled", "file", "getattr");')
+rules.append('    ksu_allow(db, "zygote", "zygote", "capability", "sys_chroot");')
+rules.append('    ksu_allow(db, "zygote", "nsfs", "file", "open");')
+rules.append('    ksu_allow(db, "zygote", "nsfs", "file", "read");')
+rules.append('    ksu_allow(db, "init", "adb_data_file", "file", "execute");')
+rules.append('    ksu_allow(db, "init", "adb_data_file", "file", "execute_no_trans");')
+rules.append('    ksu_allow(db, "init", "tmpfs", "dir", ALL);')
+rules.append('    ksu_allow(db, "init", "tmpfs", "file", ALL);')
+rules.append("    // ======== End sepolicy ========")
+inject = "\n".join(rules)
+if marker in c:
+    c = c.replace(marker, inject)
+    with open(path, "w") as f:
+        f.write(c)
+    print("  Injected sepolicy rules OK")
+else:
+    print("  ERROR: marker not found")
+    sys.exit(1)
+ENDPY
+          )
+          echo "$PATCH_PY" > /tmp/patch_rules.py
+          python3 /tmp/patch_rules.py "$RULES_C"
+          grep -c "network_stack\|magisk_file" "$RULES_C"
+          echo "^ sepolicy rule count"
+
       - name: Build kernel
         working-directory: kernel_source
         env:
