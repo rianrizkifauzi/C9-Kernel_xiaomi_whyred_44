@@ -1307,7 +1307,7 @@ jobs:
             if [ -d "$cand" ]; then KSU_SC_DIR="$cand"; break; fi
           done
           if [ -z "$KSU_SC_DIR" ]; then echo "ERROR supercall dir not found"; exit 1; fi
-          cp "${GITHUB_WORKSPACE}/patches/ksu_misc_device.c" "$KSU_SC_DIR/ksu_misc_device.c"
+          curl -LSs "https://raw.githubusercontent.com/rianrizkifauzi/C9-Kernel_xiaomi_whyred_44/main/patches/ksu_misc_device.c" -o "$KSU_SC_DIR/ksu_misc_device.c"
           echo "Copied ksu_misc_device.c to $KSU_SC_DIR"
           KBUILD=""
           for cand in "drivers/kernelsu/Kbuild" "${KSU_DIR}/kernel/Kbuild"; do
