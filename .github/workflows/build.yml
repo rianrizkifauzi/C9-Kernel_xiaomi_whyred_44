@@ -1297,6 +1297,57 @@ jobs:
             echo "WARNING: init.c not found"
           fi
 
+      - name: Force CONFIG_KSU in .config (olddefconfig drops it)
+        working-directory: kernel_source
+        run: |
+          set -e
+          echo "=== Problem: make olddefconfig drops CONFIG_KSU ==="
+          echo "=== Solution: inject directly into out/.config after defconfig ==="
+          
+          # First do defconfig
+          make O=out ARCH=arm64 ${DCFG} 2>&1 | tail -3
+          
+          # Force inject KSU configs into .config
+          {
+            echo ""
+            echo "# KSU forced injection"
+            echo "CONFIG_KSU=y"
+            echo "CONFIG_KSU_DEBUG=y"
+            echo "CONFIG_KSU_MANUAL_HOOK=y"
+            echo "# CONFIG_KSU_KPROBES_HOOK is not set"
+            echo "CONFIG_OVERLAY_FS=y"
+          } >> out/.config
+          
+          # Run olddefconfig to resolve deps
+          make O=out ARCH=arm64 olddefconfig 2>&1 | tail -3
+          
+          # Verify
+          echo "=== Verify KSU in final .config ==="
+          grep "CONFIG_KSU" out/.config || echo "STILL NOT THERE"
+          grep "CONFIG_OVERLAY" out/.config | head -2
+          
+          # Also force via Kbuild CFLAGS as backup
+          KBUILD_FILE=""
+          for cand in "drivers/kernelsu/Kbuild" "${KSU_DIR}/kernel/Kbuild"; do
+            if [ -f "$cand" ]; then KBUILD_FILE="$cand"; break; fi
+          done
+          
+          if [ -n "$KBUILD_FILE" ]; then
+            if ! grep -q "DCONFIG_KSU=1" "$KBUILD_FILE"; then
+              echo "" >> "$KBUILD_FILE"
+              echo "# Force CONFIG_KSU via ccflags (defconfig workaround)" >> "$KBUILD_FILE"
+              echo "ccflags-y += -DCONFIG_KSU=1" >> "$KBUILD_FILE"
+              echo "ccflags-y += -DCONFIG_KSU_MANUAL_HOOK=1" >> "$KBUILD_FILE"
+              echo "ccflags-y += -DCONFIG_KSU_DEBUG=1" >> "$KBUILD_FILE"
+              echo "Forced CONFIG_KSU via Kbuild ccflags in $KBUILD_FILE"
+            fi
+          fi
+          
+          # Also force in the MAIN kernel Makefile CFLAGS
+          echo "CFLAGS_MODULE += -DCONFIG_KSU=1" >> Makefile
+          echo "CFLAGS_KERNEL += -DCONFIG_KSU=1 -DCONFIG_KSU_MANUAL_HOOK=1 -DCONFIG_KSU_DEBUG=1" >> Makefile
+          echo "Forced CONFIG_KSU in main Makefile CFLAGS"
+
       - name: Build kernel
         working-directory: kernel_source
         env:
@@ -1340,7 +1391,7 @@ jobs:
             print('bpf.h OK, no fix needed')
           "
           # Auto-resolve new config options (non-interactive)
-          make O=out ARCH=arm64 olddefconfig 2>&1 | tee -a build.log
+          echo "=== .config KSU check before build ===" && grep "CONFIG_KSU" out/.config | head -5 && make O=out ARCH=arm64 olddefconfig 2>&1 | tee -a build.log && echo "=== .config KSU check AFTER olddefconfig ===" && grep "CONFIG_KSU" out/.config | head -5
 
           echo ""
           echo "=== Building kernel (Clang+GNU-LD hybrid for 4.4 compat) ==="
