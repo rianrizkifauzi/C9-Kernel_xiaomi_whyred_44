@@ -1185,27 +1185,6 @@ jobs:
               (sizeof(*(p)) + (n) * sizeof(*(p)->member))
           #endif
 
-          /* kvmalloc/kvfree: introduced 4.12 (mm/util.c) */
-          #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
-          #include <linux/mm.h>
-          #include <linux/vmalloc.h>
-          static inline void *kvmalloc(size_t size, gfp_t flags)
-          {
-              void *ret;
-              ret = kmalloc(size, flags | __GFP_NOWARN);
-              if (!ret)
-                  ret = vmalloc(size);
-              return ret;
-          }
-          static inline void kvfree(const void *addr)
-          {
-              if (is_vmalloc_addr(addr))
-                  vfree(addr);
-              else
-                  kfree(addr);
-          }
-          #endif
-
           #endif /* _KSU_COMPAT44_H */
           C44_EOF
             sed -i 's/^          //' "$COMPAT44"
@@ -1257,6 +1236,20 @@ jobs:
 
           echo ""
           echo "  === Total fixes applied: $FIXES ==="
+
+          # === Fix 7: kvmalloc/kvfree (introduced 4.12) ===
+          if [ "$KV_MAJOR" -lt 4 ] || ([ "$KV_MAJOR" -eq 4 ] && [ "$KV_MINOR" -lt 12 ]); then
+            echo ""
+            echo "  --- Fix 7: kvmalloc/kvfree compat ---"
+            while IFS= read -r f; do
+              # Add kvmalloc definition at the top of files that use it
+              if ! grep -q 'define kvmalloc' "$f"; then
+                sed -i '1i\/* kvmalloc compat for kernel < 4.12 */\n#include <linux/slab.h>\n#include <linux/vmalloc.h>\n#ifndef kvmalloc\n#define kvmalloc(size, flags) ({void *_r = kmalloc(size, (flags)|__GFP_NOWARN); if(!_r) _r = vmalloc(size); _r;})\n#endif\n#ifndef kvfree\nstatic inline void _ksu_kvfree(const void *p) { if(is_vmalloc_addr(p)) vfree(p); else kfree(p); }\n#define kvfree(p) _ksu_kvfree(p)\n#endif' "$f"
+                echo "    Fixed: $f"
+                FIXES=$((FIXES + 1))
+              fi
+            done < <(grep -rl 'kvmalloc\|kvfree' "$KSU_KERNEL_DIR" 2>/dev/null || true)
+          fi
 
 
       - name: Build kernel
