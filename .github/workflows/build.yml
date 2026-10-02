@@ -1137,7 +1137,7 @@ jobs:
             # These headers were split out from linux/sched.h in 4.11:
             # linux/sched/signal.h, linux/sched/mm.h, linux/sched/task.h,
             # linux/sched/clock.h, linux/sched/types.h, etc.
-            SCHED_HEADERS="linux/sched/signal.h linux/sched/mm.h linux/sched/task.h linux/sched/clock.h linux/sched/types.h linux/sched/task_stack.h linux/sched/cputime.h"
+            SCHED_HEADERS="linux/sched/signal.h linux/sched/mm.h linux/sched/task.h linux/sched/clock.h linux/sched/types.h linux/sched/task_stack.h linux/sched/cputime.h linux/sched/user.h linux/sched/topology.h linux/sched/stat.h linux/sched/nohz.h linux/sched/loadavg.h linux/sched/debug.h linux/sched/coredump.h linux/sched/autogroup.h linux/sched/isolation.h linux/sched/prio.h linux/sched/wake_q.h"
 
             for hdr in $SCHED_HEADERS; do
               while IFS= read -r f; do
