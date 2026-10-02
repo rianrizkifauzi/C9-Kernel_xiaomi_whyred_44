@@ -1244,7 +1244,7 @@ jobs:
             while IFS= read -r f; do
               # Add kvmalloc definition at the top of files that use it
               if ! grep -q 'define kvmalloc' "$f"; then
-                sed -i '1i\/* kvmalloc compat for kernel < 4.12 */\n#include <linux/slab.h>\n#include <linux/vmalloc.h>\n#ifndef kvmalloc\n#define kvmalloc(size, flags) ({void *_r = kmalloc(size, (flags)|__GFP_NOWARN); if(!_r) _r = vmalloc(size); _r;})\n#endif\n#ifndef kvfree\nstatic inline void _ksu_kvfree(const void *p) { if(is_vmalloc_addr(p)) vfree(p); else kfree(p); }\n#define kvfree(p) _ksu_kvfree(p)\n#endif' "$f"
+                sed -i '1i\/* kvmalloc compat for kernel < 4.12 */\n#include <linux/slab.h>\n#include <linux/vmalloc.h>\n#include <linux/mm.h>\n#ifndef kvmalloc\n#define kvmalloc(size, flags) ({void *_r = kmalloc(size, (flags)|__GFP_NOWARN); if(!_r) _r = vmalloc(size); _r;})\n#endif\n#ifndef kvfree\nstatic inline void _ksu_kvfree(const void *p) { if(is_vmalloc_addr(p)) vfree(p); else kfree(p); }\n#define kvfree(p) _ksu_kvfree(p)\n#endif' "$f"
                 echo "    Fixed: $f"
                 FIXES=$((FIXES + 1))
               fi
