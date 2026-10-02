@@ -1185,6 +1185,14 @@ jobs:
               (sizeof(*(p)) + (n) * sizeof(*(p)->member))
           #endif
 
+          /* full_name_hash: 2-arg on 4.4, 3-arg on 4.9+ (salt added) */
+          #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
+          #include <linux/dcache.h>
+          #define full_name_hash(salt, name, len) full_name_hash(name, len)
+          #define hashlen_hash(x) ((unsigned int)(x))
+          #define hashlen_len(x)  ((unsigned int)((x) >> 32))
+          #endif
+
           /* kvmalloc/kvfree: introduced 4.12. Use vmalloc-only shim to avoid slab.h dep */
           #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
           #include <linux/vmalloc.h>
