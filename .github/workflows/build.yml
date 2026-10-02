@@ -849,8 +849,10 @@ jobs:
             echo ""
             echo "# === KernelSU ==="
             echo "CONFIG_KSU=y"
-            echo "CONFIG_KSU_DEBUG=n"
+            echo "CONFIG_KSU_DEBUG=y"
             echo "CONFIG_OVERLAY_FS=y"
+            echo "CONFIG_IKCONFIG=y"
+            echo "CONFIG_IKCONFIG_PROC=y"
             echo ""
             echo "# === Custom kernel branding ==="
             echo "CONFIG_LOCALVERSION=\"-perf\""
@@ -870,7 +872,10 @@ jobs:
             } >> "${DCFG_PATH}"
             echo "Using KPROBES hooks"
           else
-            echo "CONFIG_KSU_MANUAL_HOOK=y" >> "${DCFG_PATH}"
+            {
+              echo "CONFIG_KSU_MANUAL_HOOK=y"
+              echo "# CONFIG_KSU_KPROBES_HOOK is not set"
+            } >> "${DCFG_PATH}"
             echo "Using MANUAL hooks (mode: ${KSU_HOOK_MODE})"
           fi
 
@@ -1268,6 +1273,37 @@ jobs:
           echo "  === Total fixes applied: $FIXES ==="
 
 
+
+      - name: Debug KSU init (add early prints)
+        working-directory: kernel_source
+        run: |
+          set -e
+          INIT_FILE=""
+          for cand in "drivers/kernelsu/core/init.c" "${KSU_DIR}/kernel/core/init.c"; do
+            if [ -f "$cand" ]; then INIT_FILE="$cand"; break; fi
+          done
+          
+          if [ -n "$INIT_FILE" ]; then
+            echo "Patching $INIT_FILE for debug..."
+            # Add pr_alert at the very start of kernelsu_init
+            sed -i '/int __init kernelsu_init(void)/,/{/ {
+              /^{$/a\tpr_alert("KernelSU: === kernelsu_init() ENTERED ===\n");
+            }' "$INIT_FILE"
+            
+            # Add pr_alert before ksu_supercalls_init
+            sed -i 's/ksu_supercalls_init();/pr_alert("KernelSU: before supercalls_init\n"); ksu_supercalls_init(); pr_alert("KernelSU: after supercalls_init\n");/' "$INIT_FILE"
+            
+            # Add pr_alert before ksu_lsm_hook_init  
+            sed -i 's/ksu_lsm_hook_init();/pr_alert("KernelSU: before lsm_hook_init\n"); ksu_lsm_hook_init(); pr_alert("KernelSU: after lsm_hook_init\n");/' "$INIT_FILE"
+            
+            # Add pr_alert before ksu_selinux_hide_init
+            sed -i 's/ksu_selinux_hide_init();/pr_alert("KernelSU: before selinux_hide_init\n"); ksu_selinux_hide_init(); pr_alert("KernelSU: after selinux_hide_init\n");/' "$INIT_FILE"
+            
+            echo "Debug prints added to init.c"
+            grep -n "pr_alert.*KernelSU" "$INIT_FILE" | head -10
+          else
+            echo "WARNING: init.c not found"
+          fi
 
       - name: Build kernel
         working-directory: kernel_source
