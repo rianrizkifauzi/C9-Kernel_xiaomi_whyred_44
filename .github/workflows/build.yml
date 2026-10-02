@@ -1285,22 +1285,14 @@ jobs:
           
           if [ -n "$INIT_FILE" ]; then
             echo "Patching $INIT_FILE for debug..."
-            # Add pr_alert at the very start of kernelsu_init
-            sed -i '/int __init kernelsu_init(void)/,/{/ {
-              /^{$/a\tpr_alert("KernelSU: === kernelsu_init() ENTERED ===\n");
-            }' "$INIT_FILE"
-            
-            # Add pr_alert before ksu_supercalls_init
-            sed -i 's/ksu_supercalls_init();/pr_alert("KernelSU: before supercalls_init\n"); ksu_supercalls_init(); pr_alert("KernelSU: after supercalls_init\n");/' "$INIT_FILE"
-            
-            # Add pr_alert before ksu_lsm_hook_init  
-            sed -i 's/ksu_lsm_hook_init();/pr_alert("KernelSU: before lsm_hook_init\n"); ksu_lsm_hook_init(); pr_alert("KernelSU: after lsm_hook_init\n");/' "$INIT_FILE"
-            
-            # Add pr_alert before ksu_selinux_hide_init
-            sed -i 's/ksu_selinux_hide_init();/pr_alert("KernelSU: before selinux_hide_init\n"); ksu_selinux_hide_init(); pr_alert("KernelSU: after selinux_hide_init\n");/' "$INIT_FILE"
-            
-            echo "Debug prints added to init.c"
-            grep -n "pr_alert.*KernelSU" "$INIT_FILE" | head -10
+            sed -i 's|ksu_feature_init();|pr_alert("KSU: INIT ENTERED"); ksu_feature_init(); pr_alert("KSU: feature done");|' "$INIT_FILE"
+            sed -i 's|ksu_lsm_hook_init();|pr_alert("KSU: b4 lsm"); ksu_lsm_hook_init(); pr_alert("KSU: lsm done");|' "$INIT_FILE"
+            sed -i 's|ksu_selinux_hide_init();|pr_alert("KSU: b4 selhide"); ksu_selinux_hide_init(); pr_alert("KSU: selhide done");|' "$INIT_FILE"
+            sed -i 's|ksu_supercalls_init();|pr_alert("KSU: b4 supercall"); ksu_supercalls_init(); pr_alert("KSU: supercall done");|' "$INIT_FILE"
+            sed -i 's|ksu_syscall_hook_manager_init();|pr_alert("KSU: b4 hookmgr"); ksu_syscall_hook_manager_init(); pr_alert("KSU: hookmgr done");|' "$INIT_FILE"
+            sed -i 's|ksu_allowlist_init();|pr_alert("KSU: b4 allowlist"); ksu_allowlist_init(); pr_alert("KSU: allowlist done");|' "$INIT_FILE"
+            sed -i 's|ksu_throne_tracker_init();|pr_alert("KSU: b4 throne"); ksu_throne_tracker_init(); pr_alert("KSU: throne done");|' "$INIT_FILE"
+            grep -c 'pr_alert.*KSU' "$INIT_FILE" && echo "Debug prints injected"
           else
             echo "WARNING: init.c not found"
           fi
