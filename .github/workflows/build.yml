@@ -1193,6 +1193,16 @@ jobs:
           #define hashlen_len(x)  ((unsigned int)((x) >> 32))
           #endif
 
+          /* __nocfi: CFI attribute, not available on older kernels/compilers */
+          #ifndef __nocfi
+          #define __nocfi
+          #endif
+
+          /* smp_load_acquire might need compat on some 4.4 builds */
+          #ifndef smp_load_acquire
+          #define smp_load_acquire(p) (*(p))
+          #endif
+
           /* kvmalloc/kvfree: introduced 4.12. Use vmalloc-only shim to avoid slab.h dep */
           #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
           #include <linux/vmalloc.h>
