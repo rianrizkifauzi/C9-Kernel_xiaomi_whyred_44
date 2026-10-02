@@ -1297,6 +1297,33 @@ jobs:
             echo "WARNING: init.c not found"
           fi
 
+      - name: Add /dev/kernelsu misc device (seccomp bypass for 4.4)
+        working-directory: kernel_source
+        run: |
+          set -e
+          echo "=== Adding /dev/kernelsu misc device ==="
+          KSU_SC_DIR=""
+          for cand in "drivers/kernelsu/supercall" "${KSU_DIR}/kernel/supercall"; do
+            if [ -d "$cand" ]; then KSU_SC_DIR="$cand"; break; fi
+          done
+          if [ -z "$KSU_SC_DIR" ]; then echo "ERROR supercall dir not found"; exit 1; fi
+          cp "${GITHUB_WORKSPACE}/patches/ksu_misc_device.c" "$KSU_SC_DIR/ksu_misc_device.c"
+          echo "Copied ksu_misc_device.c to $KSU_SC_DIR"
+          KBUILD=""
+          for cand in "drivers/kernelsu/Kbuild" "${KSU_DIR}/kernel/Kbuild"; do
+            if [ -f "$cand" ]; then KBUILD="$cand"; break; fi
+          done
+          if [ -n "$KBUILD" ]; then
+            echo "obj-y += supercall/ksu_misc_device.o" >> "$KBUILD"
+            echo "Added ksu_misc_device.o to $KBUILD"
+          fi
+          SC_FILE="$KSU_SC_DIR/supercall.c"
+          sed -i '/ksu_supercall_dump_commands/a\tksu_misc_device_init();' "$SC_FILE"
+          sed -i '/ksu_supercall_cleanup_state/i\tksu_misc_device_exit();' "$SC_FILE"
+          echo "extern void __init ksu_misc_device_init(void);" >> "$KSU_SC_DIR/../ksu.h" 2>/dev/null || true
+          echo "extern void ksu_misc_device_exit(void);" >> "$KSU_SC_DIR/../ksu.h" 2>/dev/null || true
+          echo "Done"
+
       - name: Force CONFIG_KSU in .config (olddefconfig drops it)
         working-directory: kernel_source
         run: |
