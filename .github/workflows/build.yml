@@ -1186,27 +1186,27 @@ jobs:
           #endif
 
           /* kvmalloc/kvfree: introduced 4.12 (mm/util.c) */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
-#include <linux/mm.h>
-#include <linux/vmalloc.h>
-static inline void *kvmalloc(size_t size, gfp_t flags)
-{
-    void *ret;
-    ret = kmalloc(size, flags | __GFP_NOWARN);
-    if (!ret)
-        ret = vmalloc(size);
-    return ret;
-}
-static inline void kvfree(const void *addr)
-{
-    if (is_vmalloc_addr(addr))
-        vfree(addr);
-    else
-        kfree(addr);
-}
-#endif
+          #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
+          #include <linux/mm.h>
+          #include <linux/vmalloc.h>
+          static inline void *kvmalloc(size_t size, gfp_t flags)
+          {
+              void *ret;
+              ret = kmalloc(size, flags | __GFP_NOWARN);
+              if (!ret)
+                  ret = vmalloc(size);
+              return ret;
+          }
+          static inline void kvfree(const void *addr)
+          {
+              if (is_vmalloc_addr(addr))
+                  vfree(addr);
+              else
+                  kfree(addr);
+          }
+          #endif
 
-#endif /* _KSU_COMPAT44_H */
+          #endif /* _KSU_COMPAT44_H */
           C44_EOF
             sed -i 's/^          //' "$COMPAT44"
             COMPAT44_ABS="$(realpath "$COMPAT44")"
