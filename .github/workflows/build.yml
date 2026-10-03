@@ -1355,20 +1355,24 @@ jobs:
             fi
           fi
           echo ""
-          echo "=== Add KSU include path to Kbuild ==="
+          echo "=== Force-include ksu.h for ALL KSU files ==="
           KBUILD=""
           for cand in "drivers/kernelsu/Kbuild" "${KSU_DIR}/kernel/Kbuild"; do
             if [ -f "$cand" ]; then KBUILD="$cand"; break; fi
           done
           if [ -n "$KBUILD" ]; then
+            KSU_H=""
+            for cand in "drivers/kernelsu/include/ksu.h" "${KSU_DIR}/kernel/include/ksu.h"; do
+              if [ -f "$cand" ]; then KSU_H="$(realpath $cand)"; break; fi
+            done
             KSU_INC=""
             for cand in "drivers/kernelsu/include" "${KSU_DIR}/kernel/include"; do
               if [ -d "$cand" ]; then KSU_INC="$(realpath $cand)"; break; fi
             done
-            if [ -n "$KSU_INC" ]; then
-              echo "ccflags-y += -I$KSU_INC" >> "$KBUILD"
-              echo "subdir-ccflags-y += -I$KSU_INC" >> "$KBUILD"
-              echo "Added include path $KSU_INC to $KBUILD"
+            if [ -n "$KSU_H" ]; then
+              echo "ccflags-y += -I$KSU_INC -include $KSU_H" >> "$KBUILD"
+              echo "subdir-ccflags-y += -I$KSU_INC -include $KSU_H" >> "$KBUILD"
+              echo "Force-include ksu.h ($KSU_H) added to $KBUILD"
             fi
           fi
 
