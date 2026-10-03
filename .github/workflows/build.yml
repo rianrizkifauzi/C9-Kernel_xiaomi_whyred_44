@@ -1324,6 +1324,27 @@ jobs:
           echo "extern void ksu_misc_device_exit(void);" >> "$KSU_SC_DIR/../ksu.h" 2>/dev/null || true
           echo "Done"
 
+      - name: Fix ksu_cred extern (kernel_umount.c needs it with CONFIG_KSU=y)
+        working-directory: kernel_source
+        run: |
+          set -e
+          echo "=== Fixing ksu_cred extern ==="
+          UMOUNT=""
+          for cand in "drivers/kernelsu/feature/kernel_umount.c" "${KSU_DIR}/kernel/feature/kernel_umount.c"; do
+            if [ -f "$cand" ]; then UMOUNT="$cand"; break; fi
+          done
+          if [ -n "$UMOUNT" ]; then
+            if ! grep -q "extern struct cred .ksu_cred" "$UMOUNT"; then
+              sed -i '1i #include <linux/cred.h>' "$UMOUNT"
+              sed -i '2i extern struct cred *ksu_cred;' "$UMOUNT"
+              echo "Added ksu_cred extern to $UMOUNT"
+            else
+              echo "ksu_cred already declared in $UMOUNT"
+            fi
+          else
+            echo "kernel_umount.c not found"
+          fi
+
       - name: Force CONFIG_KSU in .config (olddefconfig drops it)
         working-directory: kernel_source
         run: |
