@@ -1318,6 +1318,8 @@ jobs:
             echo "Added ksu_misc_device.o to $KBUILD"
           fi
           SC_FILE="$KSU_SC_DIR/supercall.c"
+          sed -i '1i extern void ksu_misc_device_init(void);' "$SC_FILE"
+          sed -i '2i extern void ksu_misc_device_exit(void);' "$SC_FILE"
           sed -i "s/ksu_supercall_dump_commands();/ksu_supercall_dump_commands(); ksu_misc_device_init();/" "$SC_FILE"
           sed -i "s/ksu_supercall_cleanup_state();/ksu_misc_device_exit(); ksu_supercall_cleanup_state();/" "$SC_FILE"
           echo "extern void __init ksu_misc_device_init(void);" >> "$KSU_SC_DIR/../ksu.h" 2>/dev/null || true
