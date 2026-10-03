@@ -1328,21 +1328,19 @@ jobs:
         working-directory: kernel_source
         run: |
           set -e
-          echo "=== Fixing ksu_cred extern ==="
-          UMOUNT=""
-          for cand in "drivers/kernelsu/feature/kernel_umount.c" "${KSU_DIR}/kernel/feature/kernel_umount.c"; do
-            if [ -f "$cand" ]; then UMOUNT="$cand"; break; fi
+          echo "=== Fixing ksu_cred extern (ALL files) ==="
+          KSU_ROOT=""
+          for cand in "drivers/kernelsu" "${KSU_DIR}/kernel"; do
+            if [ -d "$cand" ]; then KSU_ROOT="$cand"; break; fi
           done
-          if [ -n "$UMOUNT" ]; then
-            if ! grep -q "extern struct cred .ksu_cred" "$UMOUNT"; then
-              sed -i '1i #include <linux/cred.h>' "$UMOUNT"
-              sed -i '2i extern struct cred *ksu_cred;' "$UMOUNT"
-              echo "Added ksu_cred extern to $UMOUNT"
-            else
-              echo "ksu_cred already declared in $UMOUNT"
-            fi
-          else
-            echo "kernel_umount.c not found"
+          if [ -n "$KSU_ROOT" ]; then
+            for f in $(grep -rl "ksu_cred" "$KSU_ROOT" --include="*.c" 2>/dev/null); do
+              if ! grep -q "extern struct cred .ksu_cred" "$f"; then
+                sed -i '1i extern struct cred *ksu_cred;' "$f"
+                sed -i '1i #include <linux/cred.h>' "$f"
+                echo "  Fixed ksu_cred in $f"
+              fi
+            done
           fi
           echo ""
           echo "=== Fix extras.c ksu_security_secctx_to_secid ==="
