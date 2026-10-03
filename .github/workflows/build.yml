@@ -1344,6 +1344,35 @@ jobs:
           else
             echo "kernel_umount.c not found"
           fi
+          echo ""
+          echo "=== Fix extras.c ksu_security_secctx_to_secid ==="
+          EXTRAS=""
+          for cand in "drivers/kernelsu/extras.c" "${KSU_DIR}/kernel/extras.c"; do
+            if [ -f "$cand" ]; then EXTRAS="$cand"; break; fi
+          done
+          if [ -n "$EXTRAS" ]; then
+            if ! grep -q "ksu_security_secctx_to_secid" "$EXTRAS" | head -1 | grep -q "^int"; then
+              sed -i '1i int ksu_security_secctx_to_secid(const char *secdata, u32 seclen, u32 *secid);' "$EXTRAS"
+              echo "Added ksu_security_secctx_to_secid declaration to $EXTRAS"
+            fi
+          fi
+          echo ""
+          echo "=== Add KSU include path to Kbuild ==="
+          KBUILD=""
+          for cand in "drivers/kernelsu/Kbuild" "${KSU_DIR}/kernel/Kbuild"; do
+            if [ -f "$cand" ]; then KBUILD="$cand"; break; fi
+          done
+          if [ -n "$KBUILD" ]; then
+            KSU_INC=""
+            for cand in "drivers/kernelsu/include" "${KSU_DIR}/kernel/include"; do
+              if [ -d "$cand" ]; then KSU_INC="$(realpath $cand)"; break; fi
+            done
+            if [ -n "$KSU_INC" ]; then
+              echo "ccflags-y += -I$KSU_INC" >> "$KBUILD"
+              echo "subdir-ccflags-y += -I$KSU_INC" >> "$KBUILD"
+              echo "Added include path $KSU_INC to $KBUILD"
+            fi
+          fi
 
       - name: Force CONFIG_KSU in .config (olddefconfig drops it)
         working-directory: kernel_source
